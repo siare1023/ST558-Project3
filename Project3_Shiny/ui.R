@@ -120,26 +120,29 @@ body <- dashboardBody(
                                             ),
                                             checkboxGroupInput(inputId = "predictor_select",
                                                                label = "Select Predictor Variables",
-                                                               choices = c("Median Income" = "median_income",
-                                                                           "Median Age" = "median_age",
-                                                                           "Total Rooms" = "tot_rooms",
-                                                                           "Total Bedrooms" = "tot_bedrooms",
-                                                                           "Population" = "population",
-                                                                           "Households" = "households",
-                                                                           "Lattitude" = "lattitude",
-                                                                           "Longitude" = "longitude",
-                                                                           "Distance to the Coast" = "distance_to_coast",
-                                                                           "Distance to Los Angeles" = "distance_to_la",
-                                                                           "Distance to San Diego" = "distance_to_sd",
-                                                                           "Distance to San Jose" = "distance_to_sj",
-                                                                           "Distance to San Francisco" = "distance_to_sf")
+                                                               choices = c("Median Income" = "Median_Income",
+                                                                           "Median Age" = "Median_Age",
+                                                                           "Total Rooms" = "Tot_Rooms",
+                                                                           "Total Bedrooms" = "Tot_Bedrooms",
+                                                                           "Population" = "Population",
+                                                                           "Households" = "Households",
+                                                                           "Lattitude" = "Lattitude",
+                                                                           "Longitude" = "Longitude",
+                                                                           "Distance to the Coast" = "Distance_to_coast",
+                                                                           "Distance to Los Angeles" = "Distance_to_LA",
+                                                                           "Distance to San Diego" = "Distance_to_SanDiego",
+                                                                           "Distance to San Jose" = "Distance_to_SanJose",
+                                                                           "Distance to San Francisco" = "Distance_to_SanFrancisco"),
+                                                               selected = list(
+                                                                   "Median Income" = "Median_Income",
+                                                                   "Median Age" = "Median_Age") 
                                             )
                                         ), # end box
                                         box(width = 12,
                                             title = "Model Type",
                                             checkboxInput(inputId = "model_select_mlr",
-                                                          label = tags$b("Multiple Linear Regression"),
-                                                          value = FALSE),
+                                                          label = tags$b("Multiple Linear Regression", style = "color:red; font-size: 18px;"),
+                                                          value = TRUE),
                                             conditionalPanel(
                                                 condition = "input.model_select_mlr == 1",
                                                 checkboxInput(inputId = "var_interact", 
@@ -147,8 +150,8 @@ body <- dashboardBody(
                                                               value = FALSE)
                                             ),
                                             checkboxInput(inputId = "model_select_tree",
-                                                          label = tags$b("Regression Tree"),
-                                                          value = FALSE),
+                                                          label = tags$b("Regression Tree", style = "color:red; font-size: 18px;"),
+                                                          value = TRUE),
                                             conditionalPanel(
                                                 condition = "input.model_select_tree == 1",
                                                 numericInput(inputId = "cp_min",
@@ -165,8 +168,8 @@ body <- dashboardBody(
                                                              min = 0.001, max = 0.005, step = 0.001)
                                             ),
                                             checkboxInput(inputId = "model_select_rf",
-                                                          label = tags$b("Random Forest"),
-                                                          value = FALSE),
+                                                          label = tags$b("Random Forest", style = "color:red; font-size: 18px;"),
+                                                          value = TRUE),
                                             conditionalPanel(
                                                 condition = "input.model_select_rf == 1",
                                                 sliderInput(inputId = "mtry",
@@ -177,7 +180,7 @@ body <- dashboardBody(
                                                 condition = "(input.model_select_tree | input.model_select_rf) == 1",
                                                 checkboxInput(inputId = "cv",
                                                               label = "Cross Validation",
-                                                              value = FALSE),
+                                                              value = TRUE),
                                                 conditionalPanel(
                                                     condition = "input.cv == 1",
                                                     sliderInput(inputId = "folds",
@@ -189,19 +192,33 @@ body <- dashboardBody(
                                         ) # end box
                                 ), # end column 3
                                 column(9,
-                                       h4("RMSE of Training Data"),
-                                       verbatimTextOutput("rmse_training"),
-                                       h4("RMSE of Testing Data"),
-                                       verbatimTextOutput("rmse_testing"),
+                                       h3("Training Data Results"),
+                                       strong("Multiple Linear Regression"),
+                                       verbatimTextOutput("rmse_training_mlr"),
+                                       strong("Regression Tree"),
+                                       verbatimTextOutput("rmse_training_tree"),
+                                       strong("Random Forest"),
+                                       verbatimTextOutput("rmse_training_rf"),
+                                       br(),
+                                       h3("Test Data Results"),
+                                       strong("Multiple Linear Regression"),
+                                       verbatimTextOutput("rmse_testing_mlr"),
+                                       strong("Regression Tree"),
+                                       verbatimTextOutput("rmse_testing_tree"),
+                                       strong("Random Forest"),
+                                       verbatimTextOutput("rmse_testing_rf"),
+                                       br(),
                                        h4("Model Summary"),
                                        conditionalPanel(
                                            condition = "input.model_select_mlr == 1",
                                            verbatimTextOutput("summary_mlr")
                                        ),
+                                       br(),
                                        conditionalPanel(
                                            condition = "input.model_select_tree == 1",
                                            verbatimTextOutput("summary_tree")
                                        ),
+                                       br(),
                                        conditionalPanel(
                                            condition = "input.model_select_rf == 1",
                                            verbatimTextOutput("summary_rf")
