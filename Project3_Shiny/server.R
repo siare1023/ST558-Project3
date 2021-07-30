@@ -1,5 +1,7 @@
 library(shiny)
+library(tidyverse)
 library(dplyr)
+library(knitr)
 library(readr)
 library(ggplot2)
 library(DT)
@@ -8,10 +10,12 @@ library(factoextra)
 library(caret)
 library(tree)
 library(randomForest)
+library(shinycssloaders)
 
 # read in data
+#raw_data_original <- read_csv("California_Houses.csv")
 raw_data <- read_csv("California_Houses.csv")
-raw_data_original <- raw_data %>% sample_frac(0.1)
+raw_data_original <- raw_data %>% sample_frac(0.05)
 raw_data_added <- read_csv("California_Houses.csv")
 
 # create categories for quantitative variables
@@ -100,7 +104,52 @@ shinyServer(function(input, output, session){
   # data table tab
   # data tab data
   get_dt <- reactive({
-    new_data <- raw_data_added %>% filter(Median_House_Value_Factor %in% (input$select_response_factor)) %>% select(as.vector(input$select_variables_dt))
+    #new_data <- raw_data_added %>% filter(Median_House_Value_Factor %in% (input$select_response_factor)) %>% select(as.vector(input$select_variables_dt))
+    
+    new_data <- raw_data_added %>% 
+      filter(
+        (Median_House_Value <= (input$data_filter_response[2])) &
+          (Median_House_Value >= (input$data_filter_response[1]))) %>%
+      filter(
+        (Median_Income <= (input$data_filter_income[2])) &
+          (Median_Income >= (input$data_filter_income[1]))) %>%
+      filter(
+        (Median_Age <= (input$data_filter_age[2])) &
+          (Median_Age >= (input$data_filter_age[1]))) %>%
+      filter(
+        (Tot_Rooms <= (input$data_filter_rooms[2])) &
+          (Tot_Rooms >= (input$data_filter_rooms[1]))) %>%
+      filter(
+        (Tot_Bedrooms <= (input$data_filter_bedrooms[2])) &
+          (Tot_Bedrooms >= (input$data_filter_bedrooms[1]))) %>%
+      filter(
+        (Population <= (input$data_filter_population[2])) &
+          (Population >= (input$data_filter_population[1]))) %>%
+      filter(
+        (Households <= (input$data_filter_households[2])) &
+          (Households >= (input$data_filter_households[1]))) %>%
+      filter(
+        (Latitude <= (input$data_filter_latitude[2])) &
+          (Latitude >= (input$data_filter_latitude[1]))) %>%
+      filter(
+        (Longitude <= (input$data_filter_longitude[2])) &
+          (Longitude >= (input$data_filter_longitude[1]))) %>%
+      filter(
+        (Distance_to_coast <= (input$data_filter_coast[2])) &
+          (Distance_to_coast >= (input$data_filter_coast[1]))) %>%
+      filter(
+        (Distance_to_LA <= (input$data_filter_la[2])) &
+          (Distance_to_LA >= (input$data_filter_la[1]))) %>%
+      filter(
+        (Distance_to_SanDiego <= (input$data_filter_sd[2])) &
+          (Distance_to_SanDiego >= (input$data_filter_sd[1]))) %>%
+      filter(
+        (Distance_to_SanJose <= (input$data_filter_sj[2])) &
+          (Distance_to_SanJose >= (input$data_filter_sj[1]))) %>%
+      filter(
+        (Distance_to_SanFrancisco <= (input$data_filter_sf[2])) &
+          (Distance_to_SanFrancisco >= (input$data_filter_sf[1]))) %>%
+      select(as.vector(input$select_variables_dt))
   }) # end data tab data
   
   # data tab output
@@ -124,13 +173,55 @@ shinyServer(function(input, output, session){
   # filter data
   explore_data <- reactive({
     explore_data <- raw_data_added %>% 
-      filter((Median_House_Value_Factor %in% input$filter_response) & 
-               (Distance_to_coast_Factor %in% input$filter_coast) & 
-               (Distance_to_LA_Factor %in% input$filter_la) & 
-               (Distance_to_SanDiego_Factor %in% input$filter_sd) & 
-               (Distance_to_SanJose_Factor %in% input$filter_sj) & 
-               (Distance_to_SanFrancisco_Factor %in% input$filter_sf)
-             )
+      #filter((Median_House_Value_Factor %in% input$filter_response) & 
+      #         (Distance_to_coast_Factor %in% input$filter_coast) & 
+      #         (Distance_to_LA_Factor %in% input$filter_la) & 
+      #         (Distance_to_SanDiego_Factor %in% input$filter_sd) & 
+      #         (Distance_to_SanJose_Factor %in% input$filter_sj) & 
+      #         (Distance_to_SanFrancisco_Factor %in% input$filter_sf)
+      #       )
+      filter(
+        (Median_House_Value <= (input$explore_filter_response[2])) &
+          (Median_House_Value >= (input$explore_filter_response[1]))) %>%
+      filter(
+        (Median_Income <= (input$explore_filter_income[2])) &
+          (Median_Income >= (input$explore_filter_income[1]))) %>%
+      filter(
+        (Median_Age <= (input$explore_filter_age[2])) &
+          (Median_Age >= (input$explore_filter_age[1]))) %>%
+      filter(
+        (Tot_Rooms <= (input$explore_filter_rooms[2])) &
+          (Tot_Rooms >= (input$explore_filter_rooms[1]))) %>%
+      filter(
+        (Tot_Bedrooms <= (input$explore_filter_bedrooms[2])) &
+          (Tot_Bedrooms >= (input$explore_filter_bedrooms[1]))) %>%
+      filter(
+        (Population <= (input$explore_filter_population[2])) &
+          (Population >= (input$explore_filter_population[1]))) %>%
+      filter(
+        (Households <= (input$explore_filter_households[2])) &
+          (Households >= (input$explore_filter_households[1]))) %>%
+      filter(
+        (Latitude <= (input$explore_filter_latitude[2])) &
+          (Latitude >= (input$explore_filter_latitude[1]))) %>%
+      filter(
+        (Longitude <= (input$explore_filter_longitude[2])) &
+          (Longitude >= (input$explore_filter_longitude[1]))) %>%
+      filter(
+        (Distance_to_coast <= (input$explore_filter_coast[2])) &
+          (Distance_to_coast >= (input$explore_filter_coast[1]))) %>%
+      filter(
+        (Distance_to_LA <= (input$explore_filter_la[2])) &
+          (Distance_to_LA >= (input$explore_filter_la[1]))) %>%
+      filter(
+        (Distance_to_SanDiego <= (input$explore_filter_sd[2])) &
+          (Distance_to_SanDiego >= (input$explore_filter_sd[1]))) %>%
+      filter(
+        (Distance_to_SanJose <= (input$explore_filter_sj[2])) &
+          (Distance_to_SanJose >= (input$explore_filter_sj[1]))) %>%
+      filter(
+        (Distance_to_SanFrancisco <= (input$explore_filter_sf[2])) &
+          (Distance_to_SanFrancisco >= (input$explore_filter_sf[1])))
   }) # end reactive
 
 #  output$explore_table <- renderDataTable({
@@ -145,7 +236,7 @@ shinyServer(function(input, output, session){
         geom_point(aes_string(color=input$scatter_z_factor))
     } else if(input$select_plot == "Histogram") {
       ggplot(explore_data, aes_string(x=input$histo_x)) +
-        geom_histogram(color = "roseybrown", fill = "thistle4")
+        geom_histogram(color = "rosybrown", fill = "thistle4")
     } else if(input$select_plot == "Boxplot") {
       ggplot(explore_data, aes_string(x=input$box_x_factor, y=input$box_y)) +
         geom_boxplot() +
@@ -154,10 +245,23 @@ shinyServer(function(input, output, session){
     }
   })
   
-  output$explore_basic_summary <- renderPrint({
+  output$explore_numerical_summary <- renderPrint({
     explore_data <- explore_data()
     
-    explore_data %>% select(input$summaries_var) %>% summary()
+    if(input$explore_summaries_type == "Basic Summary") {
+      explore_summary_variable <- explore_data %>% select(input$summaries_var) %>% pull()
+      explore_summary_output <- c(summary(explore_summary_variable), 
+                                  "St.Dev."=sd(explore_summary_variable))
+          } else if(input$explore_summaries_type == "Correlation Summary") {
+      explore_summary_output <- explore_data %>% select(input$summaries_corr) %>% cor(method = "pearson")
+    } else if(input$explore_summaries_type == "Frequency Table") {
+      explore_summary_output <- explore_data %>% select(input$summaries_freq) %>% 
+        pull() %>% cut(breaks = input$freq_breaks, dig.lab = 10) %>% 
+        table() %>% kable(caption = "Frequency Table", 
+                          col.names = c(paste0("Range of ", as.character(input$summaries_freq)), "Count"))
+    }
+    return(explore_summary_output)
+    
   })
   # ____________________________________________________________________________________________________________________
   # model tab
@@ -176,7 +280,11 @@ shinyServer(function(input, output, session){
     
   }) #end training & test data set
   
-  
+  # update random forest tuning parameter max
+  observe({
+    updateSliderInput(session, inputId = "mtry", max = length(input$predictor_select))
+  })
+    
   # model parameters
   modeling_parameters <- reactive({
     
@@ -201,7 +309,7 @@ shinyServer(function(input, output, session){
   })
   
   # model multiple linear regression
-  fit_mlr <- reactive({
+  fit_mlr <- eventReactive(input$submit_models, {
     modeling_parameters <- modeling_parameters()
     train_test_data <- train_test_data()
     if(input$model_select_mlr==1) {
@@ -234,7 +342,7 @@ shinyServer(function(input, output, session){
   })
   
   # model regression tree
-  fit_tree <- reactive({
+  fit_tree <- eventReactive(input$submit_models, {
     modeling_parameters <- modeling_parameters()
     train_test_data <- train_test_data()
     if(input$model_select_tree==1) {
@@ -268,7 +376,7 @@ shinyServer(function(input, output, session){
   })
   
   # model random forest
-  fit_rf <- reactive({
+  fit_rf <- eventReactive(input$submit_models, {
     modeling_parameters <- modeling_parameters()
     train_test_data <- train_test_data()
     if(input$model_select_rf==1) {
@@ -308,7 +416,7 @@ shinyServer(function(input, output, session){
   })  
   
   # summary of regression tree
-  tree_plot <- reactive({
+  tree_plot <- eventReactive(input$submit_models, {
     train_test_data <- train_test_data()
     predictors <- paste(input$predictor_select, collapse = "+")
     response <- paste("Median_House_Value")
@@ -323,7 +431,7 @@ shinyServer(function(input, output, session){
   })
   
   # summary of random forest
-  rf_plot <- reactive({
+  rf_plot <- eventReactive(input$submit_models, {
     train_test_data <- train_test_data()
     predictors <- paste(input$predictor_select, collapse = "+")
     response <- paste("Median_House_Value")

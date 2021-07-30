@@ -183,7 +183,7 @@ varZselect <- "Tot_Bedrooms_Factor"
 varWselect <- "Median_Income_Factor"
 ggplot(raw_data_added, aes_string(x=varXselect, y=varYselect)) +
   geom_point(aes_string(color=varWselect)) #+
-  #facet_wrap(~varWselect)
+  #facet_wrap(~as.character(varWselect))
   #geom_smooth(method = lm, col = "red") + 
   #geom_smooth()
 
@@ -200,3 +200,11 @@ ggplot(raw_data_added, aes_string(x=varZselect, y=varYselect)) +
 cov.stat <- raw_data_added %>% select(Median_Income, Population, Median_Age, Median_House_Value) %>% cov(method = "pearson")
 corrplot::corrplot(cov.stat)
 cor(raw_data_added$Median_Income, raw_data_added$Median_Age)
+
+raw_data_added %>% select(Median_Income, Population, Median_Age, Median_House_Value) %>% cor(method = "pearson")
+
+select_variable <- "Median_House_Value"
+cut(raw_data_added$Median_House_Value, breaks = 4, dig.lab = 10) %>% table() %>% kable(caption = "Frequency Table", col.names = c("Range of Median House Value", "Count"))
+raw_data_added %>% select(select_variable) %>% pull() %>% cut(breaks = 4, dig.lab = 10) %>% table() %>% kable()
+
+kable(table(raw_data_added$Median_Income_Factor))

@@ -3,6 +3,8 @@ library(shinydashboard)
 library(DT)
 library(factoextra)
 library(plotly)
+library(shinycssloaders)
+
 
 # sidebar design
 sidebar <- dashboardSidebar(
@@ -22,8 +24,75 @@ body <- dashboardBody(
         # start "about" tab
         tabItem(tabName = "about",
                 tabsetPanel(
-                    tabPanel("Purpose"),
-                    tabPanel("Data")
+                    tabPanel("Purpose",
+                        h3("Purpose of this Shiny App"),
+                        h4("The purpose of this Shiny App is to explore California housing prices data. Users can:"), 
+                        h4(tags$ul(
+                            tags$li("Do basic data exploration"), 
+                            tags$li("See numerical summaries"), 
+                            tags$li("Create and download plots"), 
+                            tags$li("Fit three different supervised learning models on the data"), 
+                            tags$li("Make predictions on the response variable"))),
+                        br(),
+                        img(src = "california_housing.jpeg", align="left", height = "30%", width = "30%")
+                    ), # end tabPanel "purpose"
+                    
+                    tabPanel("Data",
+                        h3("About the Data"),
+                        h4("This dataset was derived from collected information using block groups in California from the 1990 census. This dataset has 20,640 observations on 14 variables, which includes the response variable - Median House Value."),
+                        h4("The original dataset and more information can be found", tags$a(href="https://www.kaggle.com/fedesoriano/california-housing-prices-data-extra-features", "here.")),
+                        br(),
+                        h3("Data Variables"),
+                        h4(tags$ul(
+                            tags$li(tags$b("Median House Value")," - Median house value for households within a block (measured in US Dollars) [$]"),
+                            tags$li(tags$b("Median Income")," - Median income for households within a block of houses (measured in tens of thousands of US Dollars) [10k$]"),
+                            tags$li(tags$b("Median Age")," - Median age of a house within a block; a lower number is a newer building [years]"),
+                            tags$li(tags$b("Total Rooms")," - Total number of rooms within a block"),
+                            tags$li(tags$b("Total Bedrooms")," - Total number of bedrooms within a block"),
+                            tags$li(tags$b("Population")," - Total number of people residing within a block"),
+                            tags$li(tags$b("Households")," - Total number of households, a group of people residing within a home unit, for a block"),
+                            tags$li(tags$b("Latitude")," - A measure of how far north a house is; a higher value is farther north [°]"),
+                            tags$li(tags$b("Longitude")," - A measure of how far west a house is; a higher value is farther west [°]"), 
+                            tags$li(tags$b("Distance to Coast")," - Distance to the nearest coast point [m]"),
+                            tags$li(tags$b("Distance to Los Angeles")," - Distance to the centre of Los Angeles [m]"),
+                            tags$li(tags$b("Distance to San Diego")," - Distance to the centre of San Diego [m]"),
+                            tags$li(tags$b("Distance to San Jose")," - Distance to the centre of San Jose [m]"),
+                            tags$li(tags$b("Distance to San Francisco")," - Distance to the centre of San Francisco [m]")
+                        )),
+                        br(),
+                        h3("Added Variables"),
+                        h4("For the ease of data manipulation and plotting, 14 additional variables are added to the original dataset. They're factor form of the original quantitative variables, each of these new categorical variable has 4 levels corresponding to each of the 4 quantiles."),
+                        h4(tags$ul(
+                            tags$li(tags$b("Median House Value (Factor)")),
+                            tags$li(tags$b("Median Income (Factor)")),
+                            tags$li(tags$b("Median Age (Factor)")),
+                            tags$li(tags$b("Total Rooms (Factor)")),
+                            tags$li(tags$b("Total Bedrooms (Factor)")),
+                            tags$li(tags$b("Population (Factor)")),
+                            tags$li(tags$b("Households (Factor)")),
+                            tags$li(tags$b("Latitude (Factor)")),
+                            tags$li(tags$b("Longitude (Factor)")), 
+                            tags$li(tags$b("Distance to Coast (Factor)")),
+                            tags$li(tags$b("Distance to Los Angeles (Factor)")),
+                            tags$li(tags$b("Distance to San Diego (Factor)")),
+                            tags$li(tags$b("Distance to San Jose (Factor)")),
+                            tags$li(tags$b("Distance to San Francisco (Factor)"))
+                        ))
+                    ), # end tabPanel "data"
+                    
+                    tabPanel("Feature",
+                        h3("About"),
+                        h4("The About page introduces the purpose of this Shiny app, and provides basic background information on the dataset used in the analysis."),
+                        #br(),
+                        h3("Data"),
+                        h4("The Data page give users the ability to view raw data in data table format. Users can filter rows of the data by selecting the ranges of any variable, and/or choose different variables for includsion in data table. Outputs include searchable and sortable data table which can be downloaded."),
+                        #br(),
+                        h3("Data Exploration"),
+                        h4("The Data Exploration page allow users to create numerical and graphical summaries using the variables of their choosing. Users can change the variables and filter rows to produce graphical plots and summaries. There are 3 types of plots available: scatterplot, histogram and boxplot, users can utilize mouse input to hover, pan, zoom, download plot as .png, etc. There are 3 types of numerical summaries users can create: basic summary on any variable, correlation summary on multiple variables, and frequency table of counts."),
+                        #br(),
+                        h3("Modeling"),
+                        h4()
+                    ) # end tabPanel "feature"
                 )
         ), # end "about" tab
         
@@ -33,9 +102,9 @@ body <- dashboardBody(
         tabItem(tabName = "data",
                 fluidRow(
                     column(3,
-                           box(width = 12,
+                           box(width = 12, title = "Select Variables",
                                checkboxGroupInput(inputId = "select_variables_dt",
-                                                  label = "Select Variables",
+                                                  label = "Select Variables to Include",
                                                   choices = list(
                                                       "Median House Value" = "Median_House_Value",
                                                       "Median Income" = "Median_Income",
@@ -60,28 +129,71 @@ body <- dashboardBody(
                                                       "Population" = "Population",
                                                       "Households" = "Households"
                                                   )
-                               ),
-                               checkboxGroupInput(inputId = "select_response_factor",
-                                                  label = "Filter Median House Value Range (US$)",
-                                                  choices = list(
-                                                      "High: 264,725 - 500,001",
-                                                      "Medium High: 179,700 - 264,724",
-                                                      "Medium Low: 119,600 - 179,699",
-                                                      "Low: 14,999 - 119,599"),
-                                                  selected = list(
-                                                      "High: 264,725 - 500,001",
-                                                      "Medium High: 179,700 - 264,724",
-                                                      "Medium Low: 119,600 - 179,699",
-                                                      "Low: 14,999 - 119,599"
-                                                  )
                                )
-                           ) # end box
+                           ), # end box "select variables"
+                           box(width = 12, title = "Filter Variable Range",
+                               #checkboxGroupInput(inputId = "select_response_factor",
+                                #                  label = "Filter Median House Value Range (US$)",
+                                 #                 choices = list(
+                                  #                    "High: 264,725 - 500,001",
+                                   #                   "Medium High: 179,700 - 264,724",
+                                    #                  "Medium Low: 119,600 - 179,699",
+                                     #                 "Low: 14,999 - 119,599"),
+                                      #            selected = list(
+                                       #               "High: 264,725 - 500,001",
+                                        #              "Medium High: 179,700 - 264,724",
+                                         #             "Medium Low: 119,600 - 179,699",
+                                          #            "Low: 14,999 - 119,599")),
+                               sliderInput(inputId = "data_filter_response",
+                                           label = "Median House Value (US$)",
+                                           min = 14999, max = 500001, value = c(14999, 500001)),
+                               sliderInput(inputId = "data_filter_income",
+                                           label = "Median Income (10k US$)",
+                                           min = 0.4999, max = 15.0001, value = c(0.4999, 15.0001)),
+                               sliderInput(inputId = "data_filter_age",
+                                           label = "Median Age (years)",
+                                           min = 1.00, max = 52.00, value = c(1.00, 52.00)),
+                               sliderInput(inputId = "data_filter_rooms",
+                                           label = "Total Rooms",
+                                           min = 2, max = 39320, value = c(2, 39320)),
+                               sliderInput(inputId = "data_filter_bedrooms",
+                                           label = "Total Bedrooms",
+                                           min = 1.0, max = 6445.0, value = c(1.0, 6445.0)),
+                               sliderInput(inputId = "data_filter_population",
+                                           label = "Population",
+                                           min = 3, max = 35682, value = c(3, 35682)),
+                               sliderInput(inputId = "data_filter_households",
+                                           label = "Households",
+                                           min = 1.0, max = 6082.0, value = c(1.0, 6082.0)),
+                               sliderInput(inputId = "data_filter_latitude",
+                                           label = "Latitude (°)",
+                                           min = 32.54, max = 41.95, value = c(32.54, 41.95)),
+                               sliderInput(inputId = "data_filter_longitude",
+                                           label = "Longitude (°)",
+                                           min = -124.3, max = -114.3, value = c(-124.3, -114.3)),
+                               sliderInput(inputId = "data_filter_coast",
+                                           label = "Distance to Coast (meters)",
+                                           min = 120.7, max = 333804.7, value = c(120.7, 333804.7)),
+                               sliderInput(inputId = "data_filter_la",
+                                           label = "Distance to Los Angeles (meters)",
+                                           min = 420.6, max = 1018260.1, value = c(420.6, 1018260.1)),
+                               sliderInput(inputId = "data_filter_sd",
+                                           label = "Distance to San Diego (meters)",
+                                           min = 484.9, max = 1196919.3, value = c(484.9, 1196919.3)),
+                               sliderInput(inputId = "data_filter_sj",
+                                           label = "Distance to San Jose (meters)",
+                                           min = 569.4, max = 836762.7, value = c(569.4, 836762.7)),
+                               sliderInput(inputId = "data_filter_sf",
+                                           label = "Distance to San Francisco (meters)",
+                                           min = 456.1, max = 903627.7, value = c(456.1, 903627.7))
+                               
+                           ) # end box 
                     ), # end column 3
                     column(9,
                            downloadButton(outputId = "dt_download", label = "Data Download"),
                            br(),
                            br(),
-                           DTOutput(outputId = "dt_table")
+                           DTOutput(outputId = "dt_table"),
                     ) # end column 9
 
                 ) # end fluidRow
@@ -94,129 +206,6 @@ body <- dashboardBody(
         tabItem(tabName = "explore",
                 fluidRow(
                     column(3,
-                           box(width = 12, title = "Filter by Variables",
-                               
-                               checkboxInput(inputId = "filter_response_check",
-                                             label = tags$b("Filter by Range of Median House Value", 
-                                                            style = "color:maroon; font-size: 15px;"),
-                                             value = FALSE),
-                               conditionalPanel(
-                                   condition = "input.filter_response_check == 1",
-                                   checkboxGroupInput(inputId = "filter_response",
-                                                      label = "Filter Median House Value Range (US$)",
-                                                      choices = list(
-                                                          "High: 264,725 - 500,001",
-                                                          "Medium High: 179,700 - 264,724",
-                                                          "Medium Low: 119,600 - 179,699",
-                                                          "Low: 14,999 - 119,599"),
-                                                      selected = list(
-                                                          "High: 264,725 - 500,001",
-                                                          "Medium High: 179,700 - 264,724",
-                                                          "Medium Low: 119,600 - 179,699",
-                                                          "Low: 14,999 - 119,599"))
-                               ),
-                               
-                               checkboxInput(inputId = "filter_coast_check",
-                                             label = tags$b("Filter by Range of Distance to the Coast", 
-                                                            style = "color:maroon; font-size: 15px;"),
-                                             value = FALSE),
-                               conditionalPanel(
-                                   condition = "input.filter_coast_check == 1",
-                                   checkboxGroupInput(inputId = "filter_coast",
-                                                      label = "Filter Distance to the Coast (meters)",
-                                                      choices = list(
-                                                          "Farthest: 49,830.4 - 333,804.7",
-                                                          "Far: 20,522.0 - 49,830.3",
-                                                          "Close: 9,079.8 - 20,521.9",
-                                                          "Closest: 102.7 - 9,079.7"),
-                                                      selected = list(
-                                                          "Farthest: 49,830.4 - 333,804.7",
-                                                          "Far: 20,522.0 - 49,830.3",
-                                                          "Close: 9,079.8 - 20,521.9",
-                                                          "Closest: 102.7 - 9,079.7"))
-                               ),
-                               
-                               checkboxInput(inputId = "filter_la_check",
-                                             label = tags$b("Filter by Range of Distance to Los Angeles", 
-                                                            style = "color:maroon; font-size: 15px;"),
-                                             value = FALSE),
-                               conditionalPanel(
-                                   condition = "input.filter_la_check == 1",
-                                   checkboxGroupInput(inputId = "filter_la",
-                                                      label = "Filter Distance to Los Angeles (meters)",
-                                                      choices = list(
-                                                          "Farthest: 527,156.2 - 1,018,260.1",
-                                                          "Far: 173,667.5 - 527,156.1",
-                                                          "Close: 32,111.3 - 173,667.4",
-                                                          "Closest: 420.6 - 32,111.2"),
-                                                      selected = list(
-                                                          "Farthest: 527,156.2 - 1,018,260.1",
-                                                          "Far: 173,667.5 - 527,156.1",
-                                                          "Close: 32,111.3 - 173,667.4",
-                                                          "Closest: 420.6 - 32,111.2"))
-                               ),
-                               
-                               checkboxInput(inputId = "filter_sd_check",
-                                             label = tags$b("Filter by Range of Distance to San Diego", 
-                                                            style = "color:maroon; font-size: 15px;"),
-                                             value = FALSE),
-                               conditionalPanel(
-                                   condition = "input.filter_sd_check == 1",
-                                   checkboxGroupInput(inputId = "filter_sd",
-                                                      label = "Filter Distance to San Diego (meters)",
-                                                      choices = list(
-                                                          "Farthest: 705,795.4 - 1,196,919.3",
-                                                          "Far: 214,739.8 - 705,795.3",
-                                                          "Close: 159,426.4 - 214,739.7",
-                                                          "Closest: 484.9 - 159,426.3"),
-                                                      selected = list(
-                                                          "Farthest: 705,795.4 - 1,196,919.3",
-                                                          "Far: 214,739.8 - 705,795.3",
-                                                          "Close: 159,426.4 - 214,739.7",
-                                                          "Closest: 484.9 - 159,426.3"))
-                               ),
-                               
-                               checkboxInput(inputId = "filter_sj_check",
-                                             label = tags$b("Filter by Range of Distance to San Jose", 
-                                                            style = "color:maroon; font-size: 15px;"),
-                                             value = FALSE),
-                               conditionalPanel(
-                                   condition = "input.filter_sj_check == 1",
-                                   checkboxGroupInput(inputId = "filter_sj",
-                                                      label = "Filter Distance to San Jose (meters)",
-                                                      choices = list(
-                                                          "Farthest: 516,946.5 - 836,762.7",
-                                                          "Far: 459,758.9 - 516,946.4",
-                                                          "Close: 113,119.9 - 459,758.8",
-                                                          "Closest: 569.4 - 113,119.8"),
-                                                      selected = list(
-                                                          "Farthest: 516,946.5 - 836,762.7",
-                                                          "Far: 459,758.9 - 516,946.4",
-                                                          "Close: 113,119.9 - 459,758.8",
-                                                          "Closest: 569.4 - 113,119.8"))
-                               ),
-                               
-                               checkboxInput(inputId = "filter_sf_check",
-                                             label = tags$b("Filter by Range of Distance to San Francisco", 
-                                                            style = "color:maroon; font-size: 15px;"),
-                                             value = FALSE),
-                               conditionalPanel(
-                                   condition = "input.filter_sf_check == 1",
-                                   checkboxGroupInput(inputId = "filter_sf",
-                                                      label = "Filter Distance to San Francisco (meters)",
-                                                      choices = list(
-                                                          "Farthest: 584,552.0 - 903,627.7",
-                                                          "Far: 526,546.7 - 584,551.9",
-                                                          "Close: 117,395.5 - 526,546.6",
-                                                          "Closest: 456.1 - 117,395.4"),
-                                                      selected = list(
-                                                          "Farthest: 584,552.0 - 903,627.7",
-                                                          "Far: 526,546.7 - 584,551.9",
-                                                          "Close: 117,395.5 - 526,546.6",
-                                                          "Closest: 456.1 - 117,395.4"))
-                               )
-                               
-                           ), # end box "filter variables"
                            box(width = 12, title = "Plot Parameters",
                                selectInput(inputId = "select_plot",
                                            label = tags$b("Select Plot Type",
@@ -361,11 +350,14 @@ body <- dashboardBody(
                                                selected = "Median_Age_Factor")
                                ) # end conditionalPanel "boxplot"
                            ), # end box "plot parameters"
+                           
                            box(width = 12, title = "Numerical Summaries",
                                selectInput(inputId = "explore_summaries_type",
                                            label = tags$b("Type of Numerical Summary",
                                                           style = "color:maroon;, font-size: 15px;"),
-                                           choices = list("Basic Summary")),
+                                           choices = list("Basic Summary",
+                                                          "Correlation Summary",
+                                                          "Frequency Table")),
                                conditionalPanel(
                                    condition = "input.explore_summaries_type == 'Basic Summary'",
                                    selectInput(inputId = "summaries_var",
@@ -386,13 +378,217 @@ body <- dashboardBody(
                                                    "Distance to San Jose" = "Distance_to_SanJose",
                                                    "Distance to San Francisco" = "Distance_to_SanFrancisco"),
                                                selected = "Median_House_Value")
+                               ), # end conditionalPanel "basic summary"
+                               
+                               conditionalPanel(
+                                   condition = "input.explore_summaries_type == 'Correlation Summary'",
+                                   checkboxGroupInput(inputId = "summaries_corr",
+                                                      label = "Select Variable(s) to See Correlation",
+                                                      choices = list(
+                                                          "Median House Value" = "Median_House_Value",
+                                                          "Median Income" = "Median_Income",
+                                                          "Median Age" = "Median_Age",
+                                                          "Total Rooms" = "Tot_Rooms",
+                                                          "Total Bedrooms" = "Tot_Bedrooms",
+                                                          "Population" = "Population",
+                                                          "Households" = "Households",
+                                                          "Latitude" = "Latitude",
+                                                          "Longitude" = "Longitude",
+                                                          "Distance to the Coast" = "Distance_to_coast",
+                                                          "Distance to Los Angeles" = "Distance_to_LA",
+                                                          "Distance to San Diego" = "Distance_to_SanDiego",
+                                                          "Distance to San Jose" = "Distance_to_SanJose",
+                                                          "Distance to San Francisco" = "Distance_to_SanFrancisco"),
+                                                      selected = list("Median House Value" = "Median_House_Value",
+                                                                      "Median Income" = "Median_Income",
+                                                                      "Median Age" = "Median_Age")
+                                    ) # end checkboxGroupInput
+                                                   
+                               ), # end conditionalPanel "correlation summary"
+                               
+                               conditionalPanel(
+                                   condition = "input.explore_summaries_type == 'Frequency Table'",
+                                   selectInput(inputId = "summaries_freq",
+                                               label = "Select a Variable",
+                                               choices = list(
+                                                   "Median House Value" = "Median_House_Value",
+                                                   "Median Income" = "Median_Income",
+                                                   "Median Age" = "Median_Age",
+                                                   "Total Rooms" = "Tot_Rooms",
+                                                   "Total Bedrooms" = "Tot_Bedrooms",
+                                                   "Population" = "Population",
+                                                   "Households" = "Households",
+                                                   "Latitude" = "Latitude",
+                                                   "Longitude" = "Longitude",
+                                                   "Distance to the Coast" = "Distance_to_coast",
+                                                   "Distance to Los Angeles" = "Distance_to_LA",
+                                                   "Distance to San Diego" = "Distance_to_SanDiego",
+                                                   "Distance to San Jose" = "Distance_to_SanJose",
+                                                   "Distance to San Francisco" = "Distance_to_SanFrancisco"),
+                                               selected = "Median_House_Value"),
+                                   sliderInput(inputId = "freq_breaks",
+                                               label = "Select Number of Breaks",
+                                               min = 2, max = 10, value = 4, step = 1)
+                               ), # end conditionalPanel "frequency table"
+                           ), # end box "numerical summaries"
+                           
+                           box(width = 12, title = "Filter by Variables",
+                               
+                               checkboxInput(inputId = "filter_response_check",
+                                             label = tags$b("Filter by Range of Median House Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_response_check == 1",
+                                   sliderInput(inputId = "explore_filter_response",
+                                               label = "Median House Value (US$)",
+                                               min = 14999, max = 500001, value = c(14999, 500001))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_income_check",
+                                             label = tags$b("Filter by Range of Median Income Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_income_check == 1",
+                                   sliderInput(inputId = "explore_filter_income",
+                                               label = "Median Income (10k US$)",
+                                               min = 0.4999, max = 15.0001, value = c(0.4999, 15.0001))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_age_check",
+                                             label = tags$b("Filter by Range of Median Age Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_age_check == 1",
+                                   sliderInput(inputId = "explore_filter_age",
+                                               label = "Median Age (years)",
+                                               min = 1.00, max = 52.00, value = c(1.00, 52.00))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_rooms_check",
+                                             label = tags$b("Filter by Range of Total Rooms Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_rooms_check == 1",
+                                   sliderInput(inputId = "explore_filter_rooms",
+                                               label = "Total Rooms",
+                                               min = 2, max = 39320, value = c(2, 39320))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_bedrooms_check",
+                                             label = tags$b("Filter by Range of Total Bedrooms Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_bedrooms_check == 1",
+                                   sliderInput(inputId = "explore_filter_bedrooms",
+                                               label = "Total Bedrooms",
+                                               min = 1.0, max = 6445.0, value = c(1.0, 6445.0))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_population_check",
+                                             label = tags$b("Filter by Range of Population Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_population_check == 1",
+                                   sliderInput(inputId = "explore_filter_population",
+                                               label = "Population",
+                                               min = 3, max = 35682, value = c(3, 35682))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_households_check",
+                                             label = tags$b("Filter by Range of Households Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_households_check == 1",
+                                   sliderInput(inputId = "explore_filter_households",
+                                               label = "Households",
+                                               min = 1.0, max = 6082.0, value = c(1.0, 6082.0))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_latitude_check",
+                                             label = tags$b("Filter by Range of Latitude Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_latitude_check == 1",
+                                   sliderInput(inputId = "explore_filter_latitude",
+                                               label = "Latitude (°)",
+                                               min = 32.54, max = 41.95, value = c(32.54, 41.95))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_longitude_check",
+                                             label = tags$b("Filter by Range of Longitude Value", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_longitude_check == 1",
+                                   sliderInput(inputId = "explore_filter_longitude",
+                                               label = "Longitude (°)",
+                                               min = -124.3, max = -114.3, value = c(-124.3, -114.3))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_coast_check",
+                                             label = tags$b("Filter by Range of Distance to the Coast", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_coast_check == 1",
+                                   sliderInput(inputId = "explore_filter_coast",
+                                               label = "Distance to Coast (meters)",
+                                               min = 120.7, max = 333804.7, value = c(120.7, 333804.7))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_la_check",
+                                             label = tags$b("Filter by Range of Distance to Los Angeles", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "filter_la_check == 1",
+                                   sliderInput(inputId = "explore_filter_la",
+                                               label = "Distance to Los Angeles (meters)",
+                                               min = 420.6, max = 1018260.1, value = c(420.6, 1018260.1))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_sd_check",
+                                             label = tags$b("Filter by Range of Distance to San Diego", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_sd_check == 1",
+                                   sliderInput(inputId = "explore_filter_sd",
+                                               label = "Distance to San Diego (meters)",
+                                               min = 484.9, max = 1196919.3, value = c(484.9, 1196919.3))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_sj_check",
+                                             label = tags$b("Filter by Range of Distance to San Jose", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_sj_check == 1",
+                                   sliderInput(inputId = "explore_filter_sj",
+                                               label = "Distance to San Jose (meters)",
+                                               min = 569.4, max = 836762.7, value = c(569.4, 836762.7))
+                               ),
+                               
+                               checkboxInput(inputId = "filter_sf_check",
+                                             label = tags$b("Filter by Range of Distance to San Francisco", 
+                                                            style = "color:maroon; font-size: 15px;"),
+                                             value = FALSE),
+                               conditionalPanel(
+                                   condition = "input.filter_sf_check == 1",
+                                   sliderInput(inputId = "explore_filter_sf",
+                                               label = "Distance to San Francisco (meters)",
+                                               min = 456.1, max = 903627.7, value = c(456.1, 903627.7))
                                )
-                                           
-                                   
                                
-                               
-                               
-                           ) # end box "numerical summaries"
+                           ) # end box "filter variables"
                         
                     ), # end column 3
                     column(9,
@@ -400,13 +596,13 @@ body <- dashboardBody(
                             #   dataTableOutput(outputId = "explore_table")
                            #),
                            box(width = 12,
-                               plotlyOutput(outputId = "explore_plot")
+                               plotlyOutput(outputId = "explore_plot") %>% withSpinner(color="#800000")
                                
                            ) # end box
                     ), # end column 9
-                    column(4,
-                           h4("Basic Summary"),
-                           verbatimTextOutput(outputId = "explore_basic_summary")
+                    column(9,
+                           h4("Numerical Summaries"),
+                           verbatimTextOutput(outputId = "explore_numerical_summary")
                         
                     ) # end column 
                     
@@ -434,6 +630,8 @@ body <- dashboardBody(
                                                         label = "Training Data (% of Data Set)",
                                                         min = 10, max = 100, step = 5, value = 20
                                             ),
+                                            tags$style("p {color:red; font-size:12px; font-style:italic;}"),
+                                            p("Due to the size of the dataset (20,640 total records), default training set is only 20% to avoid long processing time. At the default setting, it takes around 2 minutes to see results. Please be aware increasing training set percentage will require longer processing time."),
                                             checkboxGroupInput(inputId = "predictor_select",
                                                                label = "Select Predictor Variables",
                                                                choices = c("Median Income" = "Median_Income",
@@ -490,7 +688,7 @@ body <- dashboardBody(
                                                 condition = "input.model_select_rf == 1",
                                                 sliderInput(inputId = "mtry",
                                                             label = "# of Randomly Selected Predictors",
-                                                            min = 1, max = 12, value = 6, step = 1)
+                                                            min = 1, max = 13, value = 2, step = 1)
                                             ),
                                             conditionalPanel(
                                                 condition = "(input.model_select_tree | input.model_select_rf) == 1",
@@ -507,10 +705,10 @@ body <- dashboardBody(
                                                          label = "Fit Models on Training Data")
                                         ) # end box
                                 ), # end column 3
-                                column(9,
+                                column(9, 
                                        h3("Training Data RMSE"),
                                        strong("Multiple Linear Regression"),
-                                       verbatimTextOutput("rmse_training_mlr"),
+                                       verbatimTextOutput("rmse_training_mlr") %>% withSpinner(color="#800000"), 
                                        verbatimTextOutput("result_training_mlr"),
                                        strong("Regression Tree"),
                                        verbatimTextOutput("rmse_training_tree"),
