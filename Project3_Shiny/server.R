@@ -6,88 +6,95 @@ library(DT)
 library(ggrepel)
 library(factoextra)
 library(caret)
+library(tree)
+library(randomForest)
 
 # read in data
 raw_data <- read_csv("California_Houses.csv")
-raw_data_original <- raw_data %>% sample_frac(0.01)
+raw_data_original <- raw_data %>% sample_frac(0.1)
 raw_data_added <- read_csv("California_Houses.csv")
 
 # create categories for quantitative variables
 summary.median.house.value <- raw_data_added$Median_House_Value %>% summary()
 raw_data_added$Median_House_Value_Factor <- ifelse(raw_data_added$Median_House_Value >= summary.median.house.value["3rd Qu."], "High: 264,725 - 500,001", 
-                                        ifelse(raw_data_added$Median_House_Value >= summary.median.house.value["Median"], "Medium High: 179,700 - 264,724",
-                                               ifelse(raw_data_added$Median_House_Value >= summary.median.house.value["1st Qu."], "Medium Low: 119,600 - 179,699", 
-                                                      "Low: 14,999 - 119,599"))) %>% as.factor()
+                                                   ifelse(raw_data_added$Median_House_Value >= summary.median.house.value["Median"], "Medium High: 179,700 - 264,724",
+                                                          ifelse(raw_data_added$Median_House_Value >= summary.median.house.value["1st Qu."], "Medium Low: 119,600 - 179,699", 
+                                                                 "Low: 14,999 - 119,599"))) %>% as.factor()
 
 summary.median.income <- raw_data_added$Median_Income %>% summary()
 raw_data_added$Median_Income_Factor <- ifelse(raw_data_added$Median_Income >= summary.median.income["3rd Qu."], "High: 4.7432 - 15.001", 
-                                        ifelse(raw_data_added$Median_Income >= summary.median.income["Median"], "Medium High: 3.5348 - 4.7431",
-                                               ifelse(raw_data_added$Median_Income >= summary.median.income["1st Qu."], "Medium Low: 2.5634 - 3.5347", 
-                                                      "Low: 0.4999 - 2.5633"))) %>% as.factor()
+                                              ifelse(raw_data_added$Median_Income >= summary.median.income["Median"], "Medium High: 3.5348 - 4.7431",
+                                                     ifelse(raw_data_added$Median_Income >= summary.median.income["1st Qu."], "Medium Low: 2.5634 - 3.5347", 
+                                                            "Low: 0.4999 - 2.5633"))) %>% as.factor()
 
 summary.median.age <- raw_data_added$Median_Age %>% summary()
 raw_data_added$Median_Age_Factor <- ifelse(raw_data_added$Median_Age >= summary.median.age["3rd Qu."], "37 - 52", 
-                                        ifelse(raw_data_added$Median_Age >= summary.median.age["Median"], "29 - 51",
-                                               ifelse(raw_data_added$Median_Age >= summary.median.age["1st Qu."], "18 - 28", 
-                                                      "1 - 17"))) %>% as.factor()
+                                           ifelse(raw_data_added$Median_Age >= summary.median.age["Median"], "29 - 51",
+                                                  ifelse(raw_data_added$Median_Age >= summary.median.age["1st Qu."], "18 - 28", 
+                                                         "1 - 17"))) %>% as.factor()
 
 summary.total.rooms <- raw_data_added$Tot_Rooms %>% summary()
-raw_data_added$Tot_Rooms_Factor <- ifelse(raw_data_added$Tot_Rooms >= summary.total.rooms["3rd Qu."], "3148 - 39320", 
-                                     ifelse(raw_data_added$Tot_Rooms >= summary.total.rooms["Median"], "2127 - 3147",
-                                            ifelse(raw_data_added$Tot_Rooms >= summary.total.rooms["1st Qu."], "1448 - 2126", 
-                                                   "2 - 1447"))) %>% as.factor()
+raw_data_added$Tot_Rooms_Factor <- ifelse(raw_data_added$Tot_Rooms >= summary.total.rooms["3rd Qu."], "3,148 - 39,320", 
+                                          ifelse(raw_data_added$Tot_Rooms >= summary.total.rooms["Median"], "2,127 - 3,147",
+                                                 ifelse(raw_data_added$Tot_Rooms >= summary.total.rooms["1st Qu."], "1,448 - 2,126", 
+                                                        "2 - 1,447"))) %>% as.factor()
 
 summary.total.bedrooms <- raw_data_added$Tot_Bedrooms %>% summary()
-raw_data_added$Tot_Bedrooms_Factor <- ifelse(raw_data_added$Tot_Bedrooms >= summary.total.bedrooms["3rd Qu."], "647 - 6445", 
-                                    ifelse(raw_data_added$Tot_Bedrooms >= summary.total.bedrooms["Median"], "435 - 646",
-                                           ifelse(raw_data_added$Tot_Bedrooms >= summary.total.bedrooms["1st Qu."], "295 - 434", 
-                                                  "1 - 294"))) %>% as.factor()
+raw_data_added$Tot_Bedrooms_Factor <- ifelse(raw_data_added$Tot_Bedrooms >= summary.total.bedrooms["3rd Qu."], "647 - 6,445", 
+                                             ifelse(raw_data_added$Tot_Bedrooms >= summary.total.bedrooms["Median"], "435 - 646",
+                                                    ifelse(raw_data_added$Tot_Bedrooms >= summary.total.bedrooms["1st Qu."], "295 - 434", 
+                                                           "1 - 294"))) %>% as.factor()
 
 summary.population <- raw_data_added$Population %>% summary()
-raw_data_added$Population_Factor <- ifelse(raw_data_added$Population >= summary.population["3rd Qu."], "1725 - 35682", 
-                                    ifelse(raw_data_added$Population >= summary.population["Median"], "1166 - 1724",
-                                           ifelse(raw_data_added$Population >= summary.population["1st Qu."], "787 - 1165", 
-                                                  "3 - 786"))) %>% as.factor()
+raw_data_added$Population_Factor <- ifelse(raw_data_added$Population >= summary.population["3rd Qu."], "1,725 - 3,5682", 
+                                           ifelse(raw_data_added$Population >= summary.population["Median"], "1,166 - 1,724",
+                                                  ifelse(raw_data_added$Population >= summary.population["1st Qu."], "787 - 1,165", 
+                                                         "3 - 786"))) %>% as.factor()
 
 summary.households <- raw_data_added$Households %>% summary()
-raw_data_added$Households_Factor <- ifelse(raw_data_added$Households >= summary.households["3rd Qu."], "605 - 6082", 
-                                     ifelse(raw_data_added$Households >= summary.households["Median"], "409 - 604",
-                                            ifelse(raw_data_added$Households >= summary.households["1st Qu."], "280 - 408", 
-                                                   "1 - 279"))) %>% as.factor()
+raw_data_added$Households_Factor <- ifelse(raw_data_added$Households >= summary.households["3rd Qu."], "605 - 6,082", 
+                                           ifelse(raw_data_added$Households >= summary.households["Median"], "409 - 604",
+                                                  ifelse(raw_data_added$Households >= summary.households["1st Qu."], "280 - 408", 
+                                                         "1 - 279"))) %>% as.factor()
 
 summary.coast <- raw_data_added$Distance_to_coast %>% summary()
-raw_data_added$Distance_to_coast_Factor <- ifelse(raw_data_added$Distance_to_coast >= summary.coast["3rd Qu."], "Farthest: 49830.4 - 333804.7", 
-                                     ifelse(raw_data_added$Distance_to_coast >= summary.coast["Median"], "Far: 20522.0 - 49830.3",
-                                            ifelse(raw_data_added$Distance_to_coast >= summary.coast["1st Qu."], "Close: 9079.8 - 20521.9", 
-                                                   "Closest: 102.7 - 9079.7"))) %>% as.factor()
+raw_data_added$Distance_to_coast_Factor <- ifelse(raw_data_added$Distance_to_coast >= summary.coast["3rd Qu."], "Farthest: 49,830.4 - 333,804.7", 
+                                                  ifelse(raw_data_added$Distance_to_coast >= summary.coast["Median"], "Far: 20,522.0 - 49,830.3",
+                                                         ifelse(raw_data_added$Distance_to_coast >= summary.coast["1st Qu."], "Close: 9,079.8 - 20,521.9", 
+                                                                "Closest: 102.7 - 9,079.7"))) %>% as.factor()
 
 summary.la <- raw_data_added$Distance_to_LA %>% summary()
-raw_data_added$Distance_to_LA_Factor <- ifelse(raw_data_added$Distance_to_LA >= summary.la["3rd Qu."], "Farthest: 527156.2 - 1018260.1", 
-                                            ifelse(raw_data_added$Distance_to_LA >= summary.la["Median"], "Far: 173667.5 - 527156.1",
-                                                   ifelse(raw_data_added$Distance_to_LA >= summary.la["1st Qu."], "Close: 32111.3 - 173667.4", 
-                                                          "Closest: 420.6 - 32111.2"))) %>% as.factor()
+raw_data_added$Distance_to_LA_Factor <- ifelse(raw_data_added$Distance_to_LA >= summary.la["3rd Qu."], "Farthest: 527,156.2 - 1,018,260.1", 
+                                               ifelse(raw_data_added$Distance_to_LA >= summary.la["Median"], "Far: 173,667.5 - 527,156.1",
+                                                      ifelse(raw_data_added$Distance_to_LA >= summary.la["1st Qu."], "Close: 32,111.3 - 173,667.4", 
+                                                             "Closest: 420.6 - 32,111.2"))) %>% as.factor()
 
 summary.sd <- raw_data_added$Distance_to_SanDiego %>% summary()
-raw_data_added$Distance_to_SanDiego_Factor <- ifelse(raw_data_added$Distance_to_SanDiego >= summary.sd["3rd Qu."], "Farthest: 705795.4 - 1196919.3", 
-                                         ifelse(raw_data_added$Distance_to_SanDiego >= summary.sd["Median"], "Far: 214739.8 - 705795.3",
-                                                ifelse(raw_data_added$Distance_to_SanDiego >= summary.sd["1st Qu."], "Close: 159426.4 - 214739.7", 
-                                                       "Closest: 484.9 - 159426.3"))) %>% as.factor()
+raw_data_added$Distance_to_SanDiego_Factor <- ifelse(raw_data_added$Distance_to_SanDiego >= summary.sd["3rd Qu."], "Farthest: 705,795.4 - 1,196,919.3", 
+                                                     ifelse(raw_data_added$Distance_to_SanDiego >= summary.sd["Median"], "Far: 214,739.8 - 705,795.3",
+                                                            ifelse(raw_data_added$Distance_to_SanDiego >= summary.sd["1st Qu."], "Close: 159,426.4 - 214,739.7", 
+                                                                   "Closest: 484.9 - 159,426.3"))) %>% as.factor()
 
 summary.sj <- raw_data_added$Distance_to_SanJose %>% summary()
-raw_data_added$Distance_to_SanJose_Factor <- ifelse(raw_data_added$Distance_to_SanJose >= summary.sj["3rd Qu."], "Farthest: 516946.5 - 836762.7", 
-                                               ifelse(raw_data_added$Distance_to_SanJose >= summary.sj["Median"], "Far: 459758.9 - 516946.4",
-                                                      ifelse(raw_data_added$Distance_to_SanJose >= summary.sj["1st Qu."], "Close: 113119.9 - 459758.8", 
-                                                             "Closest: 569.4 - 113119.8"))) %>% as.factor()
+raw_data_added$Distance_to_SanJose_Factor <- ifelse(raw_data_added$Distance_to_SanJose >= summary.sj["3rd Qu."], "Farthest: 516,946.5 - 836,762.7", 
+                                                    ifelse(raw_data_added$Distance_to_SanJose >= summary.sj["Median"], "Far: 459,758.9 - 516,946.4",
+                                                           ifelse(raw_data_added$Distance_to_SanJose >= summary.sj["1st Qu."], "Close: 113,119.9 - 459,758.8", 
+                                                                  "Closest: 569.4 - 113,119.8"))) %>% as.factor()
 
 summary.sf <- raw_data_added$Distance_to_SanFrancisco %>% summary()
-raw_data_added$Distance_to_SanFrancisco_Factor <- ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["3rd Qu."], "Farthest: 584552.0 - 903627.7", 
-                                              ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["Median"], "Far: 526546.7 - 584551.9",
-                                                     ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["1st Qu."], "Close: 117395.5 - 526546.6", 
-                                                            "Closest: 456.1 - 117395.4"))) %>% as.factor()
+raw_data_added$Distance_to_SanFrancisco_Factor <- ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["3rd Qu."], "Farthest: 584,552.0 - 903,627.7", 
+                                                         ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["Median"], "Far: 526,546.7 - 584,551.9",
+                                                                ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["1st Qu."], "Close: 117,395.5 - 526,546.6", 
+                                                                       "Closest: 456.1 - 117,395.4"))) %>% as.factor()
 
 # shinyServer arguments
 shinyServer(function(input, output, session){
-    
+  
+  # stop app when closing
+  #session$onSessionEnded(function() {
+  #  stopApp()
+  #})
+  
   
   # ____________________________________________________________________________________________________________________
   # data table tab
@@ -98,7 +105,9 @@ shinyServer(function(input, output, session){
   
   # data tab output
   output$dt_table <- renderDT({
-    get_dt()
+    options = list(autowidth = TRUE,
+                   width = "200px")
+    get_dt <- get_dt()
   }) # end data tab output
   
   # data download handler
@@ -108,11 +117,48 @@ shinyServer(function(input, output, session){
       write.csv(get_dt(), file, row.names = FALSE)
     }
   ) # end data download
-
+  
   # ____________________________________________________________________________________________________________________
   # explore tab
   
+  # filter data
+  explore_data <- reactive({
+    explore_data <- raw_data_added %>% 
+      filter((Median_House_Value_Factor %in% input$filter_response) & 
+               (Distance_to_coast_Factor %in% input$filter_coast) & 
+               (Distance_to_LA_Factor %in% input$filter_la) & 
+               (Distance_to_SanDiego_Factor %in% input$filter_sd) & 
+               (Distance_to_SanJose_Factor %in% input$filter_sj) & 
+               (Distance_to_SanFrancisco_Factor %in% input$filter_sf)
+             )
+  }) # end reactive
+
+#  output$explore_table <- renderDataTable({
+#  explore_data <- explore_data()
+#  })
   
+  output$explore_plot <- renderPlotly({
+    explore_data <- explore_data()
+    
+    if(input$select_plot == "Scatterplot") {
+      ggplot(explore_data, aes_string(x=input$scatter_x, y=input$scatter_y)) +
+        geom_point(aes_string(color=input$scatter_z_factor))
+    } else if(input$select_plot == "Histogram") {
+      ggplot(explore_data, aes_string(x=input$histo_x)) +
+        geom_histogram(color = "roseybrown", fill = "thistle4")
+    } else if(input$select_plot == "Boxplot") {
+      ggplot(explore_data, aes_string(x=input$box_x_factor, y=input$box_y)) +
+        geom_boxplot() +
+        stat_summary(fun.y = mean, geom = "line", lwd = 1, 
+                     aes_string(group = input$box_z_factor, col = input$box_z_factor))
+    }
+  })
+  
+  output$explore_basic_summary <- renderPrint({
+    explore_data <- explore_data()
+    
+    explore_data %>% select(input$summaries_var) %>% summary()
+  })
   # ____________________________________________________________________________________________________________________
   # model tab
   
@@ -135,7 +181,7 @@ shinyServer(function(input, output, session){
   modeling_parameters <- reactive({
     
     # create formula for modeling
-    if(input$var_interact == 1 & input$model_select_mlr == 1) {
+    if(input$model_select_mlr == 1 & input$var_interact == 1) {
       predictors <- paste(input$predictor_select, collapse = "*")
     } else {
       predictors <- paste(input$predictor_select, collapse = "+")
@@ -151,7 +197,7 @@ shinyServer(function(input, output, session){
     rf_grid <- data.frame(mtry = 1:(input$mtry))
     
     return(list("formula"=formula, "trControl"=trControl, "tree_grid"=tree_grid, "rf_grid"=rf_grid))
-
+    
   })
   
   # model multiple linear regression
@@ -161,10 +207,10 @@ shinyServer(function(input, output, session){
     if(input$model_select_mlr==1) {
       set.seed(7)
       fit_mlr_model <- train(modeling_parameters[["formula"]],
-                        data = train_test_data[["training_data"]],
-                        method = "lm",
-                        preProcess = c("center", "scale"),
-                        trControl = modeling_parameters[["trControl"]])
+                             data = train_test_data[["training_data"]],
+                             method = "lm",
+                             preProcess = c("center", "scale"),
+                             trControl = modeling_parameters[["trControl"]])
       predict_mlr <- postResample(predict(fit_mlr_model, newdata = train_test_data[["test_data"]]), 
                                   obs = train_test_data[["test_data"]]$Median_House_Value)
       return(list("fit_mlr_train"=fit_mlr_model, "fit_mlr_test"=predict_mlr))
@@ -174,13 +220,19 @@ shinyServer(function(input, output, session){
   output$rmse_training_mlr <- renderPrint({
     fit_mlr <- fit_mlr()
     fit_mlr[["fit_mlr_train"]]
+    fit_mlr[["fit_mlr_train"]]$results["RMSE"] %>% min()
+  })
+  
+  output$result_training_mlr <- renderPrint({
+    fit_mlr <- fit_mlr()
+    fit_mlr[["fit_mlr_train"]]
   })
   
   output$rmse_testing_mlr <- renderPrint({
     fit_mlr <- fit_mlr()
     fit_mlr[["fit_mlr_test"]]
   })
-
+  
   # model regression tree
   fit_tree <- reactive({
     modeling_parameters <- modeling_parameters()
@@ -188,18 +240,24 @@ shinyServer(function(input, output, session){
     if(input$model_select_tree==1) {
       set.seed(7)
       fit_tree_model <- train(modeling_parameters[["formula"]],
-                             data = train_test_data[["training_data"]],
-                             method = "rpart",
-                             preProcess = c("center", "scale"),
-                             trControl = modeling_parameters[["trControl"]],
-                             tuneGrid = modeling_parameters[["tree_grid"]])
+                              data = train_test_data[["training_data"]],
+                              method = "rpart",
+                              preProcess = c("center", "scale"),
+                              trControl = modeling_parameters[["trControl"]],
+                              tuneGrid = modeling_parameters[["tree_grid"]])
       predict_tree <- postResample(predict(fit_tree_model, newdata = train_test_data[["test_data"]]), 
-                                  obs = train_test_data[["test_data"]]$Median_House_Value)
+                                   obs = train_test_data[["test_data"]]$Median_House_Value)
       return(list("fit_tree_train"=fit_tree_model, "fit_tree_test"=predict_tree))
     }  
   })
   
   output$rmse_training_tree <- renderPrint({
+    fit_tree <- fit_tree()
+    fit_tree[["fit_tree_train"]]
+    fit_tree[["fit_tree_train"]]$results["RMSE"] %>% min()
+  })
+  
+  output$result_training_tree <- renderPrint({
     fit_tree <- fit_tree()
     fit_tree[["fit_tree_train"]]
   })
@@ -216,18 +274,24 @@ shinyServer(function(input, output, session){
     if(input$model_select_rf==1) {
       set.seed(7)
       fit_rf_model <- train(modeling_parameters[["formula"]],
-                              data = train_test_data[["training_data"]],
-                              method = "rf",
-                              preProcess = c("center", "scale"),
-                              trControl = modeling_parameters[["trControl"]],
-                              tuneGrid = modeling_parameters[["rf_grid"]])
+                            data = train_test_data[["training_data"]],
+                            method = "rf",
+                            preProcess = c("center", "scale"),
+                            trControl = modeling_parameters[["trControl"]],
+                            tuneGrid = modeling_parameters[["rf_grid"]])
       predict_rf <- postResample(predict(fit_rf_model, newdata = train_test_data[["test_data"]]), 
-                                   obs = train_test_data[["test_data"]]$Median_House_Value)
+                                 obs = train_test_data[["test_data"]]$Median_House_Value)
       return(list("fit_rf_train"=fit_rf_model, "fit_rf_test"=predict_rf))
     }  
   })
   
   output$rmse_training_rf <- renderPrint({
+    fit_rf <- fit_rf()
+    fit_rf[["fit_rf_train"]]
+    fit_rf[["fit_rf_train"]]$results["RMSE"] %>% min()
+  })
+  
+  output$result_training_rf <- renderPrint({
     fit_rf <- fit_rf()
     fit_rf[["fit_rf_train"]]
   })  
@@ -237,7 +301,99 @@ shinyServer(function(input, output, session){
     fit_rf[["fit_rf_test"]]
   })  
   
+  # summary of multiple linear regression
+  output$summary_mlr <- renderPrint({
+    fit_mlr <- fit_mlr()
+    summary(fit_mlr[["fit_mlr_train"]])
+  })  
+  
+  # summary of regression tree
+  tree_plot <- reactive({
+    train_test_data <- train_test_data()
+    predictors <- paste(input$predictor_select, collapse = "+")
+    response <- paste("Median_House_Value")
+    formula <- as.formula(paste(response,"~",predictors))
+    treeFit <- tree(formula,
+                    data = train_test_data[["training_data"]])
+    plot(treeFit); text(treeFit)
+  })
+  
+  output$summary_tree <- renderPlot({
+    tree_plot <- tree_plot()
+  })
+  
+  # summary of random forest
+  rf_plot <- reactive({
+    train_test_data <- train_test_data()
+    predictors <- paste(input$predictor_select, collapse = "+")
+    response <- paste("Median_House_Value")
+    formula <- as.formula(paste(response,"~",predictors))
+    Variance.Importance.Dotchart <- randomForest(formula, 
+                          data = train_test_data[["training_data"]], 
+                          mtry = 1:(input$mtry),
+                          importance = TRUE)
+    varImpPlot(Variance.Importance.Dotchart)
+  })
+  
+  output$summary_rf<- renderPlot({
+    rf_plot <- rf_plot()
+  })
   
   
+  # ____________________________________________________________________________________________________________________
+  # prediction tab
+
+  prediction_result <- reactive({
+    Median_Income <- input$predict_median_income
+    Median_Age <- input$predict_median_age
+    Tot_Rooms <- input$predict_tot_rooms
+    Tot_Bedrooms <- input$predict_tot_bedrooms
+    Population <- input$predict_population
+    Households <- input$predict_households
+    Latitude <- input$predict_latitude
+    Longitude <- input$predict_longitude
+    Distance_to_coast <- input$predict_distance_coast
+    Distance_to_LA <- input$predict_distance_la
+    Distance_to_SanDiego <- input$predict_distance_sd
+    Distance_to_SanJose <- input$predict_distance_sj
+    Distance_to_SanFrancisco <- input$predict_distance_sf
+    
+    predict_data <- as.data.frame(cbind(Median_Income,
+                                        Median_Age,
+                                        Tot_Rooms,
+                                        Tot_Bedrooms,
+                                        Population,
+                                        Households,
+                                        Latitude,
+                                        Longitude,
+                                        Distance_to_coast,
+                                        Distance_to_LA,
+                                        Distance_to_SanDiego,
+                                        Distance_to_SanJose,
+                                        Distance_to_SanFrancisco))
+    
+    fit_mlr <- fit_mlr()
+    fit_tree <- fit_tree()
+    fit_rf <- fit_rf()
+    if(input$predict_select_model=="Multiple Linear Regression"){
+      predict_result <- predict(fit_mlr[["fit_mlr_train"]],
+                                newdata = predict_data) %>% round(2)
+    } else if(input$predict_select_model=="Regression Tree") {
+      predict_result <- predict(fit_tree[["fit_tree_train"]],
+                                newdata = predict_data) %>% round(2)
+    } else if(input$predict_select_model=="Random Forest") {
+      predict_result <- predict(fit_rf[["fit_rf_train"]],
+                                newdata = predict_data) %>% round(2)
+    }
+    return(list("Prediction Value"=predict_result, "Model Used"=input$predict_select_model))
+    
+  })
   
+  output$predict_value <- renderPrint({
+    prediction_result <- prediction_result()
+    prediction_result
+#    paste0("Based on the inputted predictor values, the prediction for Median House Value using the ", prediction_result[["chosen_model"]], " model is USD $", prediction_result[["result"]], ".")
+  })
+  
+    
 }) # end shinyServer arguments
