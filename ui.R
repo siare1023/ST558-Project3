@@ -82,15 +82,15 @@ body <- dashboardBody(
                     tabPanel("Feature",
                         h3("About"),
                         h4("The About page introduces the purpose of this Shiny app, and provides basic background information on the dataset used in the analysis."),
-                        #br(),
+                        br(),
                         h3("Data"),
                         h4("The Data page give users the ability to view raw data in data table format. Users can filter rows of the data by selecting the ranges of any variable, and/or choose different variables for includsion in data table. Outputs include searchable and sortable data table which can be downloaded."),
-                        #br(),
+                        br(),
                         h3("Data Exploration"),
                         h4("The Data Exploration page allow users to create numerical and graphical summaries using the variables of their choosing. Users can change the variables and filter rows to produce graphical plots and summaries. There are 3 types of plots available: scatterplot, histogram and boxplot, users can utilize mouse input to hover, pan, zoom, download plot as .png, etc. There are 3 types of numerical summaries users can create: basic summary on any variable, correlation summary on multiple variables, and frequency table of counts."),
-                        #br(),
+                        br(),
                         h3("Modeling"),
-                        h4()
+                        h4("The Modeling page allow users to learn about 3 types of supervised learning models: multiple linear regression, regression tree, and random forest. After selecting method-specific inputs and tuning parameters, users can then use any of the 3 models to fit on a specified proportion of data (called training set). Outputs include fit statistics (root mean squared error (RMSE)) on training and test sets for each model, model fit summaries in numerical and plot forms, and an interface to use models for prediction.")
                     ) # end tabPanel "feature"
                 )
         ), # end "about" tab
@@ -601,7 +601,7 @@ body <- dashboardBody(
                     ), # end column 9
                     column(9,
                            h4("Numerical Summaries"),
-                           verbatimTextOutput(outputId = "explore_numerical_summary")
+                           dataTableOutput(outputId = "explore_numerical_summary")
                         
                     ) # end column 
                     

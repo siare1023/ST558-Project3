@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(knitr)
+library(kableExtra)
 library(DT)
 library(caret)
 library(tree)
@@ -240,20 +241,32 @@ shinyServer(function(input, output, session){
     }
   })
   
-  output$explore_numerical_summary <- renderPrint({
+  #kable_output <- reactive({
+  #  explore_data <- explore_data()
+  #  explore_data %>% select(input$summaries_freq) %>% 
+  #    pull() %>% cut(breaks = input$freq_breaks, dig.lab = 10) %>% 
+  #    kable("html") %>% kable_styling("striped", full_width = F)
+  #})
+  
+  output$explore_numerical_summary <- renderDataTable({
     explore_data <- explore_data()
+    #kable_output <- kable_output()
     
     if(input$explore_summaries_type == "Basic Summary") {
       explore_summary_variable <- explore_data %>% select(input$summaries_var) %>% pull()
       explore_summary_output <- c(summary(explore_summary_variable), 
-                                  "St.Dev."=sd(explore_summary_variable))
-          } else if(input$explore_summaries_type == "Correlation Summary") {
-      explore_summary_output <- explore_data %>% select(input$summaries_corr) %>% cor(method = "pearson")
+                                  "St.Dev."=sd(explore_summary_variable)) %>% 
+        t() %>% as.data.frame(row.names = as.character(input$summaries_var)) %>% round(4)
+    } else if(input$explore_summaries_type == "Correlation Summary") {
+      explore_summary_output <- explore_data %>% select(input$summaries_corr) %>% 
+        cor(method = "pearson") %>% round(4)
     } else if(input$explore_summaries_type == "Frequency Table") {
-      explore_summary_output <- explore_data %>% select(input$summaries_freq) %>% 
+      #explore_summary_output <- kable_output
+      kable_output <- explore_data %>% select(input$summaries_freq) %>% 
         pull() %>% cut(breaks = input$freq_breaks, dig.lab = 10) %>% 
-        table() %>% kable(caption = "Frequency Table", 
-                          col.names = c(paste0("Range of ", as.character(input$summaries_freq)), "Count"))
+        table() %>% as.data.frame()
+      colnames(kable_output) <- c(paste0(as.character(input$summaries_freq)," Range (lower-bound,upper-bound]"), "Count")
+      explore_summary_output <- kable_output
     }
     return(explore_summary_output)
     

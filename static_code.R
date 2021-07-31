@@ -208,3 +208,16 @@ cut(raw_data_added$Median_House_Value, breaks = 4, dig.lab = 10) %>% table() %>%
 raw_data_added %>% select(select_variable) %>% pull() %>% cut(breaks = 4, dig.lab = 10) %>% table() %>% kable()
 
 kable(table(raw_data_added$Median_Income_Factor))
+
+raw_data_original %>% select(Median_Income) %>% 
+  pull() %>% cut(breaks = 4, dig.lab = 10) %>% table() %>%
+  kable("html") %>% kable_styling("striped", full_width = FALSE)
+
+df<- raw_data_original %>% select(Median_Income) %>% 
+  pull() %>% cut(breaks = 4, dig.lab = 10) %>%
+  table() %>% as.data.frame()
+colnames(df) <- c("variable","count")
+
+explore_summary_variable <- raw_data_original %>% select(Median_Income) %>% pull()
+explore_summary_output <- c(summary(explore_summary_variable), 
+                                    "St.Dev."=sd(explore_summary_variable)) %>% t() %>% as.data.frame(row.names = "variable")
