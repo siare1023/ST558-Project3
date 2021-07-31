@@ -34,6 +34,7 @@ body <- dashboardBody(
                             tags$li("Fit three different supervised learning models on the data"), 
                             tags$li("Make predictions on the response variable"))),
                         br(),
+                        h4(withMathJax(helpText("$$m=\\frac{p}{n}$$"))),
                         img(src = "california_housing.jpeg", align="left", height = "30%", width = "30%")
                     ), # end tabPanel "purpose"
                     
