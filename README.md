@@ -12,21 +12,25 @@ Dataset used in the app was derived from collected information using block group
 The original dataset and more information can be found [here](https://www.kaggle.com/fedesoriano/california-housing-prices-data-extra-features).
 
 # R Packages and Libraries Used
+```
 install.packages(c("shiny", "shinydashboard", "tidyverse", "knitr", "DT", "caret", "tree", "randomForest", "shinycssloaders", "plotly"))
 
-library(shiny)\
-library(tidyverse)\
-library(knitr)\
-library(DT)\
-library(cart)\
-library(tree)\
-library(randomForest)\
-library(shinycssloaders)\
-library(shinydashboard)\
-library(plotly)\
+library(shiny)
+library(tidyverse)
+library(knitr)
+library(DT)
+library(cart)
+library(tree)
+library(randomForest)
+library(shinycssloaders)
+library(shinydashboard)
+library(plotly)
+```
 
 # Run the App
+```
 shiny::runGitHub(repo = "ST558-Project3", username = "siare1023", ref = "main")
+```
 
 
 
