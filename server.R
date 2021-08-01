@@ -248,7 +248,7 @@ shinyServer(function(input, output, session){
   #    kable("html") %>% kable_styling("striped", full_width = F)
   #})
   
-  output$explore_numerical_summary <- renderDataTable({
+  numerical_summary_output <- reactive({
     explore_data <- explore_data()
     #kable_output <- kable_output()
     
@@ -269,8 +269,21 @@ shinyServer(function(input, output, session){
       explore_summary_output <- kable_output
     }
     return(explore_summary_output)
-    
   })
+    
+    output$explore_numerical_summary <- renderDataTable({
+      numerical_summary_output <- numerical_summary_output()
+    })
+    
+    # summary download handler
+    output$summary_download<- downloadHandler(
+      filename = "CHP_numerical_summary.csv",
+      content = function(file) {
+        write.csv(numerical_summary_output(), file, row.names = FALSE)
+      }
+    ) # end summary download
+    
+  #})
   # ____________________________________________________________________________________________________________________
   # model tab
   
@@ -290,7 +303,7 @@ shinyServer(function(input, output, session){
   
   # update random forest tuning parameter max
   observe({
-    updateSliderInput(session, inputId = "mtry", max = length(input$predictor_select))
+    updateSliderInput(session, inputId = "mtry", value = length(input$predictor_select))
   })
     
   # model parameters
@@ -336,7 +349,9 @@ shinyServer(function(input, output, session){
   output$rmse_training_mlr <- renderPrint({
     fit_mlr <- fit_mlr()
     fit_mlr[["fit_mlr_train"]]
-    fit_mlr[["fit_mlr_train"]]$results["RMSE"] %>% min()
+    fit_mlr_rmse <- fit_mlr[["fit_mlr_train"]]$results["RMSE"] %>% min() %>% as.data.frame()
+    colnames(fit_mlr_rmse) <- "RMSE"
+    fit_mlr_rmse
   })
   
   output$result_training_mlr <- renderPrint({
@@ -370,7 +385,9 @@ shinyServer(function(input, output, session){
   output$rmse_training_tree <- renderPrint({
     fit_tree <- fit_tree()
     fit_tree[["fit_tree_train"]]
-    fit_tree[["fit_tree_train"]]$results["RMSE"] %>% min()
+    fit_tree_rmse <- fit_tree[["fit_tree_train"]]$results["RMSE"] %>% min() %>% as.data.frame()
+    colnames(fit_tree_rmse) <- "RMSE"
+    fit_tree_rmse
   })
   
   output$result_training_tree <- renderPrint({
@@ -404,7 +421,9 @@ shinyServer(function(input, output, session){
   output$rmse_training_rf <- renderPrint({
     fit_rf <- fit_rf()
     fit_rf[["fit_rf_train"]]
-    fit_rf[["fit_rf_train"]]$results["RMSE"] %>% min()
+    fit_rf_rmse <- fit_rf[["fit_rf_train"]]$results["RMSE"] %>% min() %>% as.data.frame()
+    colnames(fit_rf_rmse) <- "RMSE"
+    fit_rf_rmse
   })
   
   output$result_training_rf <- renderPrint({
@@ -459,7 +478,7 @@ shinyServer(function(input, output, session){
   # ____________________________________________________________________________________________________________________
   # prediction tab
 
-  prediction_result <- reactive({
+  prediction_result <- eventReactive(input$submit_predict, {
     Median_Income <- input$predict_median_income
     Median_Age <- input$predict_median_age
     Tot_Rooms <- input$predict_tot_rooms

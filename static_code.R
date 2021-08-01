@@ -2,7 +2,7 @@ raw_data_original <- read_csv("California_Houses.csv")
 raw_data_original$Median_House_Value %>% summary()
 
 # training and test data
-training.percentage <- 0.8
+training.percentage <- 0.1
 set.seed(7)
 training <- sample(1:nrow(raw_data_original), size = nrow(raw_data_original)*training.percentage)
 test <- dplyr::setdiff(1:nrow(raw_data_original), training)

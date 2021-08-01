@@ -30,7 +30,7 @@ body <- dashboardBody(
                             tags$li("Do basic data exploration"), 
                             tags$li("See numerical summaries"), 
                             tags$li("Create and download plots"), 
-                            tags$li("Fit three different supervised learning models on the data"), 
+                            tags$li("Fit three different supervised learning method models on the data"), 
                             tags$li("Make predictions on the response variable"))),
                         br(),
                         img(src = "california_housing.jpeg", align="left", height = "30%", width = "30%")
@@ -90,7 +90,7 @@ body <- dashboardBody(
                         h4("The Data Exploration page allow users to create numerical and graphical summaries using the variables of their choosing. Users can change the variables and filter rows to produce graphical plots and summaries. There are 3 types of plots available: scatterplot, histogram and boxplot, users can utilize mouse input to hover, pan, zoom, download plot as .png, etc. There are 3 types of numerical summaries users can create: basic summary on any variable, correlation summary on multiple variables, and frequency table of counts."),
                         br(),
                         h3("Modeling"),
-                        h4("The Modeling page allow users to learn about 3 types of supervised learning models: multiple linear regression, regression tree, and random forest. After selecting method-specific inputs and tuning parameters, users can then use any of the 3 models to fit on a specified proportion of data (called training set). Outputs include fit statistics (root mean squared error (RMSE)) on training and test sets for each model, model fit summaries in numerical and plot forms, and an interface to use models for prediction.")
+                        h4("The Modeling page allow users to learn about 3 types of supervised learning method models: multiple linear regression, regression tree, and random forest. After selecting method-specific inputs and tuning parameters, users can then use any of the 3 models to fit on a specified proportion of data (called training set). Outputs include fit statistics (root mean squared error (RMSE)) on training and test sets for each model, model fit summaries in numerical and plot forms, and an interface to use models for prediction.")
                     ) # end tabPanel "feature"
                 )
         ), # end "about" tab
@@ -193,6 +193,7 @@ body <- dashboardBody(
                            br(),
                            br(),
                            DTOutput(outputId = "dt_table"),
+                           p("Due to width restriction, including 9+ variables may cause the data table to run off screen. Please consider downloading the data table as .csv file if this issue arises.")
                     ) # end column 9
 
                 ) # end fluidRow
@@ -601,7 +602,9 @@ body <- dashboardBody(
                     ), # end column 9
                     column(9,
                            h4("Numerical Summaries"),
-                           dataTableOutput(outputId = "explore_numerical_summary")
+                           dataTableOutput(outputId = "explore_numerical_summary"),
+                           downloadButton(outputId = "summary_download", label = "Summary Download"),
+                           p("Due to width restriction, for the Correlation Summary table, including 8+ variables may cause the data table to run off screen. Please consider downloading the numerical summary as .csv file if this issue arises.")
                         
                     ) # end column 
                     
@@ -616,8 +619,32 @@ body <- dashboardBody(
                 tabsetPanel(
                     tabPanel("Modeling Info",
                              h3("About Multiple Linear Regression Model"),
+                             h4("Multiple linear regression model is a type of regression model under supervised learning methods. Multiple linear regression model is about using several explanatory variables to predict the outcome of the response variable. We're trying to model the linear relationship between the explanatory variables and the response variable. Multiple linear regression is an extension of simple linear regression model but can include more explanatory variables and/or higher ordered terms. An example of what a multiple linear regression formula with 2 first order predictor variables and their interaction looks like is:"),
+                             h4(withMathJax(helpText("$$Y_i=\\beta_0+\\beta_1x_{1i}+\\beta_2x_{2i}+\\beta_3x_{1i}x_{2i}+...+E_i$$"))),
+                             h4("For all 3 models we use in this app, we'll be comparing the root mean squared error (RMSE) statistic to determine how well a model is doing. The formula for RMSE is:"),
+                             h4(withMathJax(helpText("$$RMSE = \\sqrt{\\frac{\\sum_{i=1}^n(y_i-\\hat{y}_i)^2}{n}}$$"))),
+                             h4(tags$b("Benefits:"),"Multiple linear regression models are usually easier to implement and use less time and resources. And by using multiple linear regression, it can lead to a more accurate and precise understanding of the association of each individual predictor with the response. It also gives us an understanding of the association of all the predictors as a whole with the response, and the association between the various predictor variables themselves."),
+                             h4(tags$b("Drawbacks:"),"For multiple linear regression models there are assumptions for inference we need to check, such as the homogeneity of the variance, independence of observations, whether data follow a normal distribution, linearity of the best fit line, etc. Also, because we can use many different forms of predictors in multiple linear regression (first ordered terms, quadratic, interactions, etc.) it can sometimes be difficult to determine which predictors to fit and automating this selection can be difficult. For example, we don't really want to have an interaction term without having both of the main effects also included, we don't want to have a quadratic term in the model without having the linear term in it."),
+                             br(),
                              h3("About Regression Tree Model"),
-                             h3("About Random Forest Model")
+                             h4("Regression tree is a type of tree based model under supervised learning methods. For tree based methods, we take the predictor space and split them into regions, then develop different predictions based on the different regions. For the regression tree specifically, we are predicting a continuous response. If we want to model a constant within each region, the optimal constant to use is the mean within that particular region. Thus, we use the mean of all the observations in a given predictor space region as the prediction, and will use the root mean squared error (RMSE) to judge how well the model performs."),
+                             h4("A crucial part of fitting a regression tree is picking where to split up the regions. What regression tree does is it takes every possible value for each predictor we're fitting, find the residual sums of squares (RSS), then try to minimize this RSS based on using the mean value for each possible split. We're trying to minimize this equation:"),
+                             h4(withMathJax(helpText("$$\\sum_{i:x_i \\in R_1 (j,s)} (y_i + \\bar{y}_{R_1})^2 + \\sum_{i:x_i \\in R_2 (j,s)} (y_i + \\bar{y}_{R_2})^2$$"))),
+                             h4("For each region, we'd consider all possible combinations of j and s values and find a pair of j and s that'd minimize the sum of squared errors across all the points in each one of those regions."),
+                             h4(withMathJax(helpText("$$R_1(j,s) = {x|x_j <s}$$"))),
+                             h4(withMathJax(helpText("$$R_2(j,s) = {x|x_j \\ge s}$$"))),
+                             h4("So we're trying to find 2 regions (R1 and R2) where we find a value s that we're splitting on, then go across all possible predictors (j represents which predictor we're looking at, s is which value we're using to split that predictor)."),
+                             h4("Once a split is chosen, we go through the same process to create a second split. Keep splitting and splitting to grow a big tree that has many nodes (bottom most values), then prune this tree back using some algorithm (most common is cost-complexity pruning, which is done so we don't overfit to the training data). If we have a really big tree then our tree will generally have low amount of bias but high amount of variance, so by pruning the tree back we'd decrease the variance but increase the bias, balancing both will hopefully gain overall prediction strength. To choose how far to prune back our tree, we can use a method such as doing training/test error or using the cross-validation. For the purpose of this shiny app, we're using the caret package, we'll just need to consider which variables to fit, how many folds to use in cross-validation, and specify tuning parameter, the caret package will output a result and help us see which model had the lowest RMSE value."),
+                             h4(tags$b("Benefits:"),"Tree based methods (such as the regression tree) are great because they're easy to read, usually no instructions are needed for people to read the plots as the concepts behind them are intuitive. Predictors used in the model fit do not need to be scaled. No statistical assumptions are necessary to fit these regression tree models. Compared with a linear regression model where a more rigid structure is fit (aka fitting a line/curve between 2 variables), the regression tree splits up the predictor region into different regions, and by making different predictions for different regions, the regression tree method is more flexible. For tree based methods there are built in variable selection, so we do not need to worry about fitting interaction terms as the general nature of the trees allow them to find interaction effects on their own."),
+                             h4(tags$b("Drawbacks:"), "Small changes in data can vastly change the tree (thus change the final tree we end up with), because of this regression tree models tend to have high variance. There's no optimal algorithm designed for fitting these trees. Greedy algorithm is greedy because it's only looking one step ahead (what's the best possible split right now, not what's the best possible 2 or 3 splits we can do at once). Usually an extra step in the modeling process is needed because we need to prune the tree back. Regression tree methods do not perform well for prediction purposes, instead we can use ensemble learning methods where we fit lots of trees then average their predictions, which we'll discuss in the Random Forest Model section below."),
+                             br(),
+                             h3("About Random Forest Model"),
+                             h4("Random forest is another type of tree based model under the supervised learning methods. To understand the random forest model, we need to first understand bootstrap. Bootstrap is the idea of getting multiple samples from the same population. If we have a fitted model, we can create random samples from that model or treat the data as a population and sample from that. We get 1 bootstrap sample, apply the model to it, repeat this process over and over again to see behavior of the model over many bootstrap samples. For a random forest, we'd get a bootstrap sample (with replacement) from the original population and fit a tree with a random subset of predictors to this bootstrap sample, and repeat this process many times. When we have a new observation we want to predict for, we predict it for every one of the trees (fit on bootstrap samples) and take the average of these predictions as the final prediction. Can look at variable importance measures which will give us an idea of which predictors were most important for fitting our final models."),
+                             h4("By randomly selecting a subset of predictors to fit, we can improve the test error rate. The crucial part of doing random forest is figuring out how many of our predictors to include when doing a particular tree fit. Usually we pick m number of predictors from p total predictors using this formula:"),
+                             h4(withMathJax(helpText("$$m=\\frac{p}{3}$$"))),
+                             h4("We can also determine what m should be through the out-of-bag error idea where we can fit the trees for many different values of m, then choose which one was best based on the out-of-bag error rate. For the purpose of this shiny app, we're using the caret package, we'll just need to consider which variables to fit, how many folds to use in cross-validation, and specify what values of m we want to try to fit to, the caret package will do the rest to help us determine which model had the lowest RMSE value."),
+                             h4(tags$b("Benefits:"),"By averaging the tree predictions across many samples we decrease the variance in our prediction but we do lose interpretability, so we can no longer say we're splitting on a variable to get our results. This does improve prediction accuracy greatly. With random forest models we do not need to worry about pruning, we can just fit a full tree on a sample. Random forest (along with bagged tree and boosted tree) prediction will usually outperform regression models and will certainly outperform single tree models."),
+                             h4(tags$b("Drawbacks:"), "By doing random forest instead of regression tree, we'd lose the interpretability of the trees, but if we mostly care about prediction then losing the interpretability of the trees is not a big issue. However, random forest models are more time-consuming to fit and will usually require more resources, so the overhead of fitting the data could be troublesome especially when there's a lot of data."),
                         
                     ), # end tabPanel "modeling info"
                     tabPanel("Model Fitting",
@@ -630,7 +657,7 @@ body <- dashboardBody(
                                                         min = 10, max = 100, step = 5, value = 20
                                             ),
                                             tags$style("p {color:red; font-size:12px; font-style:italic;}"),
-                                            p("Due to the size of the dataset (20,640 total records), default training set is only 20% to avoid long processing time. At the default setting, it takes around 2 minutes to see results. Please be aware increasing training set percentage will require longer processing time."),
+                                            p("Due to the size of the dataset (20,640 total records), default training set is only 20% to avoid long processing time. At the default setting, it takes around 2 minutes to see results. Please be aware increasing training set percentage, adding more variables, and altering other tuning parameter settings will require longer processing time."),
                                             checkboxGroupInput(inputId = "predictor_select",
                                                                label = "Select Predictor Variables",
                                                                choices = c("Median Income" = "Median_Income",
@@ -670,11 +697,11 @@ body <- dashboardBody(
                                                 numericInput(inputId = "cp_min",
                                                              label = "Complexity Parameter (min. value)",
                                                              value = 0.01,
-                                                             min = 0.005, max = 0.02, step = 0.005),
+                                                             min = 0.001, max = 0.02, step = 0.005),
                                                 numericInput(inputId = "cp_max",
                                                              label = "Complexity Parameter (max. value)",
                                                              value = 0.03,
-                                                             min = 0.03, max = 0.05, step = 0.005),
+                                                             min = 0.03, max = 0.1, step = 0.005),
                                                 numericInput(inputId = "cp_by",
                                                              label = "Step by",
                                                              value = 0.001,
@@ -701,48 +728,49 @@ body <- dashboardBody(
                                                                 min = 2, max = 10, value = 5))
                                             ),
                                             actionButton(inputId = "submit_models",
-                                                         label = "Fit Models on Training Data")
+                                                         label = "Fit Models on Training Data",
+                                                         style="color:#ffffff; background-color:#800000;")
                                         ) # end box
                                 ), # end column 3
                                 column(9, 
                                        h3("Training Data RMSE"),
-                                       strong("Multiple Linear Regression"),
+                                       h4(strong("Multiple Linear Regression")),
                                        verbatimTextOutput("rmse_training_mlr") %>% withSpinner(color="#800000"), 
                                        verbatimTextOutput("result_training_mlr"),
-                                       strong("Regression Tree"),
+                                       h4(strong("Regression Tree")),
                                        verbatimTextOutput("rmse_training_tree"),
                                        verbatimTextOutput("result_training_tree"),
-                                       strong("Random Forest"),
+                                       h4(strong("Random Forest")),
                                        verbatimTextOutput("rmse_training_rf"),
                                        verbatimTextOutput("result_training_rf"),
                                        br(),
                                        h3("Test Data Results"),
-                                       strong("Multiple Linear Regression"),
+                                       h4(strong("Multiple Linear Regression")),
                                        verbatimTextOutput("rmse_testing_mlr"),
-                                       strong("Regression Tree"),
+                                       h4(strong("Regression Tree")),
                                        verbatimTextOutput("rmse_testing_tree"),
-                                       strong("Random Forest"),
+                                       h4(strong("Random Forest")),
                                        verbatimTextOutput("rmse_testing_rf"),
                                        br(),
                                        h3("Model Summary"),
-                                       strong("Multiple Linear Regression"),
+                                       h4(strong("Multiple Linear Regression")),
                                        conditionalPanel(
                                            condition = "input.model_select_mlr == 1",
                                            verbatimTextOutput("summary_mlr")
                                        ),
                                        br(),
-                                       strong("Regression Tree"),
+                                       h4(strong("Regression Tree")),
                                        conditionalPanel(
                                            condition = "input.model_select_tree == 1",
                                            plotOutput(outputId = "summary_tree")
                                        ),
                                        br(),
-                                       strong("Random Forest"),
+                                       h4(strong("Random Forest")),
                                        conditionalPanel(
                                            condition = "input.model_select_rf == 1",
                                            plotOutput(outputId = "summary_rf")
-
-                                       )
+                                       ),
+                                       h5(tags$b("%IncMSE"), " indicates percent increase in mean squared error (MSE), where larger the value of % increase in MSE means more important that variable was to the overall prediction.", tags$b("IncNodePurity"), " is increase in node purity is analogous to Gini-based importance, and is calculated based on the reduction in sum of squared errors whenever a variable is chosen to split. Higher values of increase in node purity also mean higher the importance of the variable in our model.")
                                     
                                 ) # end column 9
                              ) # end of fluidRow
@@ -753,55 +781,55 @@ body <- dashboardBody(
                             column(4,
                                    box(width = 12, title = "Enter Values to Predict Median House Value",
                                        numericInput(inputId = "predict_median_income",
-                                                    label = "Median Income (10k USD$)",
+                                                    label = "Median Income (10k USD$) [0 - 20]",
                                                     value = 3.5,
                                                     min = 0, max = 20),
                                        numericInput(inputId = "predict_median_age",
-                                                    label = "Median Age (years)",
+                                                    label = "Median Age (years) [1 - 60]",
                                                     value = 29,
                                                     min = 1, max = 60),
                                        numericInput(inputId = "predict_tot_rooms",
-                                                    label = "Total # of Rooms (within a block)",
+                                                    label = "Total # of Rooms (within a block) [1 - 40000]",
                                                     value = 2127,
                                                     min = 1, max = 40000),
                                        numericInput(inputId = "predict_tot_bedrooms",
-                                                    label = "Total # of Bedrooms (within a block)",
+                                                    label = "Total # of Bedrooms (within a block) [1 - 7000]",
                                                     value = 435,
                                                     min = 1, max = 7000),
                                        numericInput(inputId = "predict_population",
-                                                    label = "Total # of People (within a block)",
+                                                    label = "Total # of People (within a block) [1 - 40000]",
                                                     value = 1166,
                                                     min = 1, max = 40000),
                                        numericInput(inputId = "predict_households",
-                                                    label = "Total # of Households (within a block)",
+                                                    label = "Total # of Households (within a block) [1 - 6500]",
                                                     value = 409,
                                                     min = 1, max = 6500),
                                        numericInput(inputId = "predict_latitude",
-                                                    label = "Latitude (how far north)",
+                                                    label = "Latitude (how far north) [32 - 45]",
                                                     value = 34.3,
                                                     min = 32, max = 45),
                                        numericInput(inputId = "predict_longitude",
-                                                    label = "Longitude (how far west)",
+                                                    label = "Longitude (how far west) [-125 - -110]",
                                                     value = -118,
                                                     min = -125, max = -110),
                                        numericInput(inputId = "predict_distance_coast",
-                                                    label = "Distance to Coast (meters)",
+                                                    label = "Distance to Coast (meters) [100 - 340000]",
                                                     value = 20000,
                                                     min = 100, max = 340000),
                                        numericInput(inputId = "predict_distance_la",
-                                                    label = "Distance to Los Angeles (meters)",
+                                                    label = "Distance to Los Angeles (meters) [400 - 1020000]",
                                                     value = 175000,
                                                     min = 400, max = 1020000),
                                        numericInput(inputId = "predict_distance_sd",
-                                                    label = "Distance to San Diego (meters)",
+                                                    label = "Distance to San Diego (meters) [480 - 1200000]",
                                                     value = 215000,
                                                     min = 480, max = 1200000),
                                        numericInput(inputId = "predict_distance_sj",
-                                                    label = "Distance to San Jose (meters)",
+                                                    label = "Distance to San Jose (meters) [550 - 840000]",
                                                     value = 460000,
                                                     min = 550, max = 840000),
                                        numericInput(inputId = "predict_distance_sf",
-                                                    label = "Distance to San Francisco (meters)",
+                                                    label = "Distance to San Francisco (meters) [450 - 905000]",
                                                     value = 530000,
                                                     min = 450, max = 905000),
                                        selectInput(inputId = "predict_select_model",
@@ -811,7 +839,9 @@ body <- dashboardBody(
                                                                "Random Forest"),
                                                    selected = "Regression Tree"),
                                        actionButton(inputId = "submit_predict",
-                                                    label = "Make Prediction")
+                                                    label = "Make Prediction",
+                                                    style="color:#ffffff; background-color:#800000;"),
+                                       p("(Be sure to fit model on training data first from the Model Fitting Tab before making a prediction.)")
                                    ) # end box
                             ), # end column 3
                             column(8,
