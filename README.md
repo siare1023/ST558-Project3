@@ -18,6 +18,7 @@ install.packages(c("shiny", "shinydashboard", "tidyverse", "knitr", "DT", "caret
 library(shiny)
 library(tidyverse)
 library(knitr)
+library(kableExtra)
 library(DT)
 library(cart)
 library(tree)
