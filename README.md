@@ -13,11 +13,12 @@ The original dataset and more information can be found [here](https://www.kaggle
 
 # R Packages and Libraries Used
 ```
-install.packages(c("shiny", "shinydashboard", "tidyverse", "knitr", "DT", "caret", "tree", "randomForest", "shinycssloaders", "plotly"))
+install.packages(c("shiny", "shinydashboard", "tidyverse", "knitr", "kableExtra", "DT", "caret", "tree", "randomForest", "shinycssloaders", "plotly"))
 
 library(shiny)
 library(tidyverse)
 library(knitr)
+library(kableExtra)
 library(DT)
 library(cart)
 library(tree)
