@@ -11,7 +11,7 @@ library(shinycssloaders)
 # read in data
 #raw_data_original <- read_csv("California_Houses.csv")
 raw_data <- read_csv("California_Houses.csv")
-raw_data_original <- raw_data %>% sample_frac(0.05)
+raw_data_original <- raw_data #%>% sample_frac(0.05)
 raw_data_added <- read_csv("California_Houses.csv")
 
 # create categories for quantitative variables
