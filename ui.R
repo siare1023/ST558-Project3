@@ -870,7 +870,7 @@ body <- dashboardBody(
 # App arguments
 dashboardPage(
     dashboardHeader(title = "California Housing Prices Data Analysis",
-                    titleWidth = 450),
+                    titleWidth = 360),
     sidebar,
     body
 )
