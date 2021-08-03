@@ -107,7 +107,6 @@ shinyServer(function(input, output, session){
   #  stopApp()
   #})
   
-  
   # ____________________________________________________________________________________________________________________
   # data table tab
   # data tab data

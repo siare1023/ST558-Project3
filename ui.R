@@ -858,7 +858,6 @@ body <- dashboardBody(
                             ) # end column 9
                         ) # end fluidRow
                     ) # end tabPanel "prediction"
-                        
                 ) # end tabsetPanel
             
         ) # end "model" tab
