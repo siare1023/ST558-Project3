@@ -84,7 +84,7 @@ body <- dashboardBody(
                         h4("The About page introduces the purpose of this Shiny app, and provides basic background information on the dataset used in the analysis."),
                         br(),
                         h3("Data"),
-                        h4("The Data page give users the ability to view raw data in data table format. Users can filter rows of the data by selecting the ranges of any variable, and/or choose different variables for includsion in data table. Outputs include searchable and sortable data table which can be downloaded."),
+                        h4("The Data page give users the ability to view raw data in data table format. Users can filter rows of the data by selecting the ranges of any variable, and/or choose different variables for inclusion in data table. Outputs include searchable and sortable data table which can be downloaded."),
                         br(),
                         h3("Data Exploration"),
                         h4("The Data Exploration page allow users to create numerical and graphical summaries using the variables of their choosing. Users can change the variables and filter rows to produce graphical plots and summaries. There are 3 types of plots available: scatterplot, histogram and boxplot, users can utilize mouse input to hover, pan, zoom, download plot as .png, etc. There are 3 types of numerical summaries users can create: basic summary on any variable, correlation summary on multiple variables, and frequency table of counts."),
@@ -101,7 +101,8 @@ body <- dashboardBody(
         tabItem(tabName = "data",
                 fluidRow(
                     column(3,
-                           box(width = 12, title = "Select Variables",
+                           box(width = 12, title = "Select Variables", status = "primary", 
+                               solidHeader = TRUE, collapsible = TRUE,
                                checkboxGroupInput(inputId = "select_variables_dt",
                                                   label = "Select Variables to Include",
                                                   choices = list(
@@ -130,19 +131,8 @@ body <- dashboardBody(
                                                   )
                                )
                            ), # end box "select variables"
-                           box(width = 12, title = "Filter Variable Range",
-                               #checkboxGroupInput(inputId = "select_response_factor",
-                                #                  label = "Filter Median House Value Range (US$)",
-                                 #                 choices = list(
-                                  #                    "High: 264,725 - 500,001",
-                                   #                   "Medium High: 179,700 - 264,724",
-                                    #                  "Medium Low: 119,600 - 179,699",
-                                     #                 "Low: 14,999 - 119,599"),
-                                      #            selected = list(
-                                       #               "High: 264,725 - 500,001",
-                                        #              "Medium High: 179,700 - 264,724",
-                                         #             "Medium Low: 119,600 - 179,699",
-                                          #            "Low: 14,999 - 119,599")),
+                           box(width = 12, title = "Filter Variable Range", status = "primary", 
+                               solidHeader = TRUE, collapsible = TRUE,
                                sliderInput(inputId = "data_filter_response",
                                            label = "Median House Value (US$)",
                                            min = 14999, max = 500001, value = c(14999, 500001)),
@@ -206,7 +196,8 @@ body <- dashboardBody(
         tabItem(tabName = "explore",
                 fluidRow(
                     column(3,
-                           box(width = 12, title = "Plot Parameters",
+                           box(width = 12, title = "Plot Parameters", status = "primary", 
+                               solidHeader = TRUE, collapsible = TRUE,
                                selectInput(inputId = "select_plot",
                                            label = tags$b("Select Plot Type",
                                                           style = "color:maroon;, font-size: 15px;"),
@@ -351,7 +342,8 @@ body <- dashboardBody(
                                ) # end conditionalPanel "boxplot"
                            ), # end box "plot parameters"
                            
-                           box(width = 12, title = "Numerical Summaries",
+                           box(width = 12, title = "Numerical Summaries", status = "primary", 
+                               solidHeader = TRUE, collapsible = TRUE,
                                selectInput(inputId = "explore_summaries_type",
                                            label = tags$b("Type of Numerical Summary",
                                                           style = "color:maroon;, font-size: 15px;"),
@@ -432,8 +424,8 @@ body <- dashboardBody(
                                ), # end conditionalPanel "frequency table"
                            ), # end box "numerical summaries"
                            
-                           box(width = 12, title = "Filter by Variables",
-                               
+                           box(width = 12, title = "Filter by Variables", status = "primary", 
+                               solidHeader = TRUE, collapsible = TRUE,
                                checkboxInput(inputId = "filter_response_check",
                                              label = tags$b("Filter by Range of Median House Value", 
                                                             style = "color:maroon; font-size: 15px;"),
@@ -592,9 +584,6 @@ body <- dashboardBody(
                         
                     ), # end column 3
                     column(9,
-                           #box(width = 12,
-                            #   dataTableOutput(outputId = "explore_table")
-                           #),
                            box(width = 12,
                                plotlyOutput(outputId = "explore_plot") %>% withSpinner(color="#800000")
                                
@@ -621,7 +610,7 @@ body <- dashboardBody(
                              h3("About Multiple Linear Regression Model"),
                              h4("Multiple linear regression model is a type of regression model under supervised learning methods. Multiple linear regression model is about using several explanatory variables to predict the outcome of the response variable. We're trying to model the linear relationship between the explanatory variables and the response variable. Multiple linear regression is an extension of simple linear regression model but can include more explanatory variables and/or higher ordered terms. An example of what a multiple linear regression formula with 2 first order predictor variables and their interaction looks like is:"),
                              h4(withMathJax(helpText("$$Y_i=\\beta_0+\\beta_1x_{1i}+\\beta_2x_{2i}+\\beta_3x_{1i}x_{2i}+...+E_i$$"))),
-                             h4("For all 3 models we use in this app, we'll be comparing the root mean squared error (RMSE) statistic to determine how well a model is doing. The formula for RMSE is:"),
+                             h4("For all 3 models we use in this app, we'll be comparing the root mean squared error (RMSE) statistic to determine how well a model is doing. RMSE is the standard deviation of the residuals (prediction errors). Residuals are a measure of how far from the regression line data points are; RMSE is a measure of how spread out these residuals are. In other words, it tells you how concentrated the data is around the line of best fit. The formula for RMSE is:"),
                              h4(withMathJax(helpText("$$RMSE = \\sqrt{\\frac{\\sum_{i=1}^n(y_i-\\hat{y}_i)^2}{n}}$$"))),
                              h4(tags$b("Benefits:"),"Multiple linear regression models are usually easier to implement and use less time and resources. And by using multiple linear regression, it can lead to a more accurate and precise understanding of the association of each individual predictor with the response. It also gives us an understanding of the association of all the predictors as a whole with the response, and the association between the various predictor variables themselves."),
                              h4(tags$b("Drawbacks:"),"For multiple linear regression models there are assumptions for inference we need to check, such as the homogeneity of the variance, independence of observations, whether data follow a normal distribution, linearity of the best fit line, etc. Also, because we can use many different forms of predictors in multiple linear regression (first ordered terms, quadratic, interactions, etc.) it can sometimes be difficult to determine which predictors to fit and automating this selection can be difficult. For example, we don't really want to have an interaction term without having both of the main effects also included, we don't want to have a quadratic term in the model without having the linear term in it."),
@@ -647,10 +636,12 @@ body <- dashboardBody(
                              h4(tags$b("Drawbacks:"), "By doing random forest instead of regression tree, we'd lose the interpretability of the trees, but if we mostly care about prediction then losing the interpretability of the trees is not a big issue. However, random forest models are more time-consuming to fit and will usually require more resources, so the overhead of fitting the data could be troublesome especially when there's a lot of data."),
                         
                     ), # end tabPanel "modeling info"
+                    
                     tabPanel("Model Fitting",
                              fluidRow(
                                  column(3,
-                                        box(width = 12,
+                                        box(width = 12, status = "primary", 
+                                            solidHeader = TRUE, collapsible = TRUE,
                                             title = "Model Parameters",
                                             sliderInput(inputId = "train_select",
                                                         label = "Training Data (% of Data Set)",
@@ -678,7 +669,8 @@ body <- dashboardBody(
                                                                    "Median Age" = "Median_Age") 
                                             )
                                         ), # end box
-                                        box(width = 12,
+                                        box(width = 12, status = "primary", 
+                                            solidHeader = TRUE, collapsible = TRUE,
                                             title = "Model Type",
                                             checkboxInput(inputId = "model_select_mlr",
                                                           label = tags$b("Multiple Linear Regression", style = "color:maroon; font-size: 18px;"),
@@ -717,7 +709,7 @@ body <- dashboardBody(
                                                             min = 1, max = 13, value = 2, step = 1)
                                             ),
                                             conditionalPanel(
-                                                condition = "(input.model_select_tree | input.model_select_rf) == 1",
+                                                condition = "(input.model_select_mlr | input.model_select_tree | input.model_select_rf) == 1",
                                                 checkboxInput(inputId = "cv",
                                                               label = "Cross Validation",
                                                               value = TRUE),
@@ -726,60 +718,74 @@ body <- dashboardBody(
                                                     sliderInput(inputId = "folds",
                                                                 label = "Folds",
                                                                 min = 2, max = 10, value = 5))
-                                            ),
+                                            )
+                                        ), # end box
+                                        box(width = 12,
                                             actionButton(inputId = "submit_models",
                                                          label = "Fit Models on Training Data",
                                                          style="color:#ffffff; background-color:#800000;")
                                         ) # end box
                                 ), # end column 3
                                 column(9, 
-                                       h3("Training Data RMSE"),
-                                       h4(strong("Multiple Linear Regression")),
-                                       verbatimTextOutput("rmse_training_mlr") %>% withSpinner(color="#800000"), 
-                                       verbatimTextOutput("result_training_mlr"),
-                                       h4(strong("Regression Tree")),
-                                       verbatimTextOutput("rmse_training_tree"),
-                                       verbatimTextOutput("result_training_tree"),
-                                       h4(strong("Random Forest")),
-                                       verbatimTextOutput("rmse_training_rf"),
-                                       verbatimTextOutput("result_training_rf"),
-                                       br(),
-                                       h3("Test Data Results"),
-                                       h4(strong("Multiple Linear Regression")),
-                                       verbatimTextOutput("rmse_testing_mlr"),
-                                       h4(strong("Regression Tree")),
-                                       verbatimTextOutput("rmse_testing_tree"),
-                                       h4(strong("Random Forest")),
-                                       verbatimTextOutput("rmse_testing_rf"),
-                                       br(),
-                                       h3("Model Summary"),
-                                       h4(strong("Multiple Linear Regression")),
-                                       conditionalPanel(
-                                           condition = "input.model_select_mlr == 1",
-                                           verbatimTextOutput("summary_mlr")
+                                       box(width = 12, status = "primary",
+                                           h3("Training Data RMSE"),
+                                           h5("Compare the root mean squared error (RMSE) value for each model, the model with the lowest RMSE value is the optimal model."),
+                                           tableOutput(outputId = "rmse_training_all_model")),
+                                       box(width = 12, solidHeader = TRUE, collapsible = TRUE,
+                                           title = "Training Data Outputs",
+                                           h4(strong("Multiple Linear Regression")),
+                                           verbatimTextOutput("result_training_mlr"),
+                                           h4(strong("Regression Tree")),
+                                           verbatimTextOutput("result_training_tree"),
+                                           h4(strong("Random Forest")),
+                                           verbatimTextOutput("result_training_rf")
                                        ),
                                        br(),
-                                       h4(strong("Regression Tree")),
-                                       conditionalPanel(
-                                           condition = "input.model_select_tree == 1",
-                                           plotOutput(outputId = "summary_tree")
+                                       box(width = 12, status = "primary",
+                                           h3("Test Data RMSE"),
+                                           tableOutput(outputId = "rmse_test_all_model")),
+                                       box(width = 12, solidHeader = TRUE, collapsible = TRUE,
+                                           title = "Test Data Outputs",
+                                           h4(strong("Multiple Linear Regression")),
+                                           verbatimTextOutput("result_testing_mlr"),
+                                           h4(strong("Regression Tree")),
+                                           verbatimTextOutput("result_testing_tree"),
+                                           h4(strong("Random Forest")),
+                                           verbatimTextOutput("result_testing_rf")
                                        ),
                                        br(),
-                                       h4(strong("Random Forest")),
-                                       conditionalPanel(
-                                           condition = "input.model_select_rf == 1",
-                                           plotOutput(outputId = "summary_rf")
-                                       ),
-                                       h5(tags$b("%IncMSE"), " indicates percent increase in mean squared error (MSE), where larger the value of % increase in MSE means more important that variable was to the overall prediction.", tags$b("IncNodePurity"), " is increase in node purity is analogous to Gini-based importance, and is calculated based on the reduction in sum of squared errors whenever a variable is chosen to split. Higher values of increase in node purity also mean higher the importance of the variable in our model.")
-                                    
+                                       box(width = 12, status = "primary",
+                                           h3("Model Summary"),
+                                           h4(strong("Multiple Linear Regression")),
+                                           conditionalPanel(
+                                               condition = "input.model_select_mlr == 1",
+                                               verbatimTextOutput("summary_mlr")
+                                           ),
+                                           br(),
+                                           h4(strong("Regression Tree")),
+                                           conditionalPanel(
+                                               condition = "input.model_select_tree == 1",
+                                               plotOutput(outputId = "summary_tree") %>% withSpinner(color="#800000")
+                                           ),
+                                           br(),
+                                           h4(strong("Random Forest")),
+                                           conditionalPanel(
+                                               condition = "input.model_select_rf == 1",
+                                               plotOutput(outputId = "summary_rf")
+                                           ),
+                                           h5(tags$b("%IncMSE"), " indicates percent increase in mean squared error (MSE), where larger the value of % increase in MSE means more important that variable was to the overall prediction.", tags$b("IncNodePurity"), " is increase in node purity is analogous to Gini-based importance, and is calculated based on the reduction in sum of squared errors whenever a variable is chosen to split. Higher values of increase in node purity also mean higher the importance of the variable in our model.")
+                                       ) # end box
                                 ) # end column 9
                              ) # end of fluidRow
                         
                     ), # end tabPanel "model fitting"
+                    
                     tabPanel("Prediction",
                         fluidRow(
                             column(4,
-                                   box(width = 12, title = "Enter Values to Predict Median House Value",
+                                   box(width = 12, 
+                                       title = "Enter Values to Predict Median House Value", 
+                                       solidHeader = TRUE,
                                        numericInput(inputId = "predict_median_income",
                                                     label = "Median Income (10k USD$) [0 - 20]",
                                                     value = 3.5,
@@ -845,9 +851,9 @@ body <- dashboardBody(
                                    ) # end box
                             ), # end column 3
                             column(8,
-                                box(width = 12,
+                                box(width = 12, background = "light-blue",
                                     h3("Prediction for Median House Value (USD$)"),
-                                    verbatimTextOutput(outputId = "predict_value")
+                                    tableOutput(outputId = "predict_value_table")
                                 ) # end box
                             ) # end column 9
                         ) # end fluidRow
@@ -864,7 +870,8 @@ body <- dashboardBody(
 
 # App arguments
 dashboardPage(
-    dashboardHeader(title = "CHP Data Analysis"),
+    dashboardHeader(title = "California Housing Prices Data Analysis",
+                    titleWidth = 450),
     sidebar,
     body
 )

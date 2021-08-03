@@ -87,6 +87,18 @@ raw_data_added$Distance_to_SanFrancisco_Factor <- ifelse(raw_data_added$Distance
                                                                 ifelse(raw_data_added$Distance_to_SanFrancisco >= summary.sf["1st Qu."], "Close: 117,395.5 - 526,546.6", 
                                                                        "Closest: 456.1 - 117,395.4"))) %>% as.factor()
 
+summary.latitude <- raw_data_added$Latitude %>% summary()
+raw_data_added$Latitude_Factor <- ifelse(raw_data_added$Latitude >= summary.latitude["3rd Qu."], "37.71 - 41.95", 
+                                                         ifelse(raw_data_added$Latitude >= summary.latitude["Median"], "34.26 - 37.71",
+                                                                ifelse(raw_data_added$Latitude >= summary.latitude["1st Qu."], "33.93 - 34.26", 
+                                                                       "32.54 - 33.93"))) %>% as.factor()
+
+summary.longitude <- raw_data_added$Longitude %>% summary()
+raw_data_added$Longitude_Factor <- ifelse(raw_data_added$Longitude >= summary.longitude["3rd Qu."], "(-118.0) - (-114.3)", 
+                                         ifelse(raw_data_added$Longitude >= summary.longitude["Median"], "(-118.5) - (-118.0)",
+                                                ifelse(raw_data_added$Longitude >= summary.longitude["1st Qu."], "(-121.8) - (-118.5)", 
+                                                       "(-124.3) - (-121.8)"))) %>% as.factor()
+
 # shinyServer arguments
 shinyServer(function(input, output, session){
   
@@ -100,7 +112,6 @@ shinyServer(function(input, output, session){
   # data table tab
   # data tab data
   get_dt <- reactive({
-    #new_data <- raw_data_added %>% filter(Median_House_Value_Factor %in% (input$select_response_factor)) %>% select(as.vector(input$select_variables_dt))
     
     new_data <- raw_data_added %>% 
       filter(
@@ -169,13 +180,6 @@ shinyServer(function(input, output, session){
   # filter data
   explore_data <- reactive({
     explore_data <- raw_data_added %>% 
-      #filter((Median_House_Value_Factor %in% input$filter_response) & 
-      #         (Distance_to_coast_Factor %in% input$filter_coast) & 
-      #         (Distance_to_LA_Factor %in% input$filter_la) & 
-      #         (Distance_to_SanDiego_Factor %in% input$filter_sd) & 
-      #         (Distance_to_SanJose_Factor %in% input$filter_sj) & 
-      #         (Distance_to_SanFrancisco_Factor %in% input$filter_sf)
-      #       )
       filter(
         (Median_House_Value <= (input$explore_filter_response[2])) &
           (Median_House_Value >= (input$explore_filter_response[1]))) %>%
@@ -220,16 +224,13 @@ shinyServer(function(input, output, session){
           (Distance_to_SanFrancisco >= (input$explore_filter_sf[1])))
   }) # end reactive
 
-#  output$explore_table <- renderDataTable({
-#  explore_data <- explore_data()
-#  })
   
   output$explore_plot <- renderPlotly({
     explore_data <- explore_data()
     
     if(input$select_plot == "Scatterplot") {
       ggplot(explore_data, aes_string(x=input$scatter_x, y=input$scatter_y)) +
-        geom_point(aes_string(color=input$scatter_z_factor))
+        geom_jitter(aes_string(color=input$scatter_z_factor))
     } else if(input$select_plot == "Histogram") {
       ggplot(explore_data, aes_string(x=input$histo_x)) +
         geom_histogram(color = "rosybrown", fill = "thistle4")
@@ -241,17 +242,10 @@ shinyServer(function(input, output, session){
     }
   })
   
-  #kable_output <- reactive({
-  #  explore_data <- explore_data()
-  #  explore_data %>% select(input$summaries_freq) %>% 
-  #    pull() %>% cut(breaks = input$freq_breaks, dig.lab = 10) %>% 
-  #    kable("html") %>% kable_styling("striped", full_width = F)
-  #})
   
   numerical_summary_output <- reactive({
     explore_data <- explore_data()
-    #kable_output <- kable_output()
-    
+
     if(input$explore_summaries_type == "Basic Summary") {
       explore_summary_variable <- explore_data %>% select(input$summaries_var) %>% pull()
       explore_summary_output <- c(summary(explore_summary_variable), 
@@ -261,7 +255,6 @@ shinyServer(function(input, output, session){
       explore_summary_output <- explore_data %>% select(input$summaries_corr) %>% 
         cor(method = "pearson") %>% round(4)
     } else if(input$explore_summaries_type == "Frequency Table") {
-      #explore_summary_output <- kable_output
       kable_output <- explore_data %>% select(input$summaries_freq) %>% 
         pull() %>% cut(breaks = input$freq_breaks, dig.lab = 10) %>% 
         table() %>% as.data.frame()
@@ -346,12 +339,17 @@ shinyServer(function(input, output, session){
     }  
   })
   
-  output$rmse_training_mlr <- renderPrint({
+  rmse_training_mlr <- reactive({
     fit_mlr <- fit_mlr()
-    fit_mlr[["fit_mlr_train"]]
     fit_mlr_rmse <- fit_mlr[["fit_mlr_train"]]$results["RMSE"] %>% min() %>% as.data.frame()
     colnames(fit_mlr_rmse) <- "RMSE"
+    rownames(fit_mlr_rmse) <- "Multiple Linear Regression"
     fit_mlr_rmse
+  })
+  
+  output$rmse_training_mlr <- renderPrint({
+    rmse_training_mlr <- rmse_training_mlr()
+    rmse_training_mlr
   })
   
   output$result_training_mlr <- renderPrint({
@@ -359,7 +357,20 @@ shinyServer(function(input, output, session){
     fit_mlr[["fit_mlr_train"]]
   })
   
+  rmse_testing_mlr <- reactive({
+    fit_mlr <- fit_mlr()
+    mlr_test_rmse <- fit_mlr[["fit_mlr_test"]]["RMSE"] %>% min() %>% as.data.frame()
+    colnames(mlr_test_rmse) <- "RMSE"
+    rownames(mlr_test_rmse) <- "Multiple Linear Regression"
+    mlr_test_rmse
+  })
+  
   output$rmse_testing_mlr <- renderPrint({
+    rmse_testing_mlr <- rmse_testing_mlr()
+    rmse_testing_mlr
+  })
+  
+  output$result_testing_mlr <- renderPrint({
     fit_mlr <- fit_mlr()
     fit_mlr[["fit_mlr_test"]]
   })
@@ -382,20 +393,39 @@ shinyServer(function(input, output, session){
     }  
   })
   
-  output$rmse_training_tree <- renderPrint({
+  rmse_training_tree <- reactive({
     fit_tree <- fit_tree()
     fit_tree[["fit_tree_train"]]
     fit_tree_rmse <- fit_tree[["fit_tree_train"]]$results["RMSE"] %>% min() %>% as.data.frame()
     colnames(fit_tree_rmse) <- "RMSE"
+    rownames(fit_tree_rmse) <- "Regression Tree"
     fit_tree_rmse
+  })
+  
+  output$rmse_training_tree <- renderPrint({
+    rmse_training_tree <- rmse_training_tree()
+    rmse_training_tree
   })
   
   output$result_training_tree <- renderPrint({
     fit_tree <- fit_tree()
     fit_tree[["fit_tree_train"]]
   })
+
+  rmse_testing_tree <- reactive({
+    fit_tree <- fit_tree()
+    tree_test_rmse <- fit_tree[["fit_tree_test"]]["RMSE"] %>% min() %>% as.data.frame()
+    colnames(tree_test_rmse) <- "RMSE"
+    rownames(tree_test_rmse) <- "Regression Tree"
+    tree_test_rmse
+  })
   
   output$rmse_testing_tree <- renderPrint({
+    rmse_testing_tree <- rmse_testing_tree()
+    rmse_testing_tree
+  })
+    
+  output$result_testing_tree <- renderPrint({
     fit_tree <- fit_tree()
     fit_tree[["fit_tree_test"]]
   })
@@ -418,23 +448,62 @@ shinyServer(function(input, output, session){
     }  
   })
   
-  output$rmse_training_rf <- renderPrint({
+  rmse_training_rf <- reactive({
     fit_rf <- fit_rf()
     fit_rf[["fit_rf_train"]]
     fit_rf_rmse <- fit_rf[["fit_rf_train"]]$results["RMSE"] %>% min() %>% as.data.frame()
     colnames(fit_rf_rmse) <- "RMSE"
+    rownames(fit_rf_rmse) <- "Random Forest"
     fit_rf_rmse
+  })
+  
+  output$rmse_training_rf <- renderPrint({
+    rmse_training_rf <- rmse_training_rf()
+    rmse_training_rf
   })
   
   output$result_training_rf <- renderPrint({
     fit_rf <- fit_rf()
     fit_rf[["fit_rf_train"]]
   })  
+
+  rmse_testing_rf <- reactive({
+    fit_rf <- fit_rf()
+    rf_test_rmse <- fit_rf[["fit_rf_test"]]["RMSE"] %>% min() %>% as.data.frame()
+    colnames(rf_test_rmse) <- "RMSE"
+    rownames(rf_test_rmse) <- "Random Forest"
+    rf_test_rmse
+  })  
   
   output$rmse_testing_rf <- renderPrint({
+    rmse_testing_rf <- rmse_testing_rf()
+    rmse_testing_rf
+  })  
+  
+  output$result_testing_rf <- renderPrint({
     fit_rf <- fit_rf()
     fit_rf[["fit_rf_test"]]
   })  
+  
+  # training rmse info for all models
+  output$rmse_training_all_model <- renderTable({
+    rmse_training_mlr <- rmse_training_mlr()
+    rmse_training_tree <- rmse_training_tree()
+    rmse_training_rf <- rmse_training_rf()
+    table <- rbind(rmse_training_mlr, rmse_training_tree, rmse_training_rf)
+    table$Model <- c("Multiple Linear Regression", "Regression Tree", "Random Forest")
+    table %>% select(Model, RMSE)
+  })
+  
+  # test rmse info for all models
+  output$rmse_test_all_model <- renderTable({
+    rmse_testing_mlr <- rmse_testing_mlr()
+    rmse_testing_tree <- rmse_testing_tree()
+    rmse_testing_rf <- rmse_testing_rf()
+    table <- rbind(rmse_testing_mlr, rmse_testing_tree, rmse_testing_rf)
+    table$Model <- c("Multiple Linear Regression", "Regression Tree", "Random Forest")
+    table %>% select(Model, RMSE)
+  })
   
   # summary of multiple linear regression
   output$summary_mlr <- renderPrint({
@@ -524,10 +593,9 @@ shinyServer(function(input, output, session){
     
   })
   
-  output$predict_value <- renderPrint({
+  output$predict_value_table <- renderTable({
     prediction_result <- prediction_result()
-    prediction_result
-#    paste0("Based on the inputted predictor values, the prediction for Median House Value using the ", prediction_result[["chosen_model"]], " model is USD $", prediction_result[["result"]], ".")
+    as.data.frame(prediction_result)
   })
   
     
